@@ -20,13 +20,14 @@
 - **Cadencias flexibles**: objetivos diarios, semanales, mensuales o solo ciertos días de la semana. En los semanales y mensuales puedes pedir «N veces».
 - **Estadísticas**: puntuación de eficiencia de los últimos 30 días, cumplimiento diario, mapa de constancia anual estilo GitHub, rachas actuales y récord, y cumplimiento por objetivo.
 - **Recordatorios configurables**: hasta 5 horas al día, los días de la semana que elijas, avisar siempre o solo si te faltan objetivos, y mensaje personalizado (con `{nombre}` para incluir tu nombre).
+- **Temporizador pomodoro (pestaña Enfoque)**: duraciones de enfoque y descansos personalizables, ciclo con descanso largo, inicio automático opcional y alarma al terminar cada fase (suena con el volumen de alarma o solo vibra). Puedes vincularlo a un objetivo en minutos para que cada sesión sume su tiempo al registro del día.
 - **Organización**: pausa, archiva, reordena o elimina objetivos, y elige su color.
 
 ## Instalación
 
 1. Descarga el archivo `.apk` de la [última versión](../../releases/latest) desde el móvil.
 2. Ábrelo. Si Android lo pide, permite **instalar apps de origen desconocido** para tu navegador.
-3. Google Play Protect avisará de que **no conoce a este desarrollador**. Es normal en apps que no vienen de Google Play: pulsa **Más detalles → Instalar de todos modos**. La app solo pide permiso para mostrar notificaciones (los recordatorios).
+3. Google Play Protect avisará de que **no conoce a este desarrollador**. Es normal en apps que no vienen de Google Play: pulsa **Más detalles → Instalar de todos modos**.
 
 Las versiones nuevas se instalan encima de la anterior sin perder datos.
 
@@ -36,7 +37,7 @@ Requiere Android 7.0 o superior.
 
 - Todos tus datos se guardan **solo en tu móvil** (base de datos SQLite local).
 - No hay cuentas, ni publicidad, ni analíticas, ni se envía nada a ningún servidor.
-- El único permiso que pide es el de **notificaciones**, para los recordatorios.
+- Solo pide permiso de **notificaciones** (recordatorios y fin del pomodoro) y de **alarmas exactas**, para que el aviso del pomodoro llegue justo a su hora. En Android 14 o superior este último se activa en *Ajustes de la app → Alarmas y recordatorios*.
 
 Si desinstalas la app, se borran sus datos.
 

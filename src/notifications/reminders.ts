@@ -19,6 +19,12 @@ import { today } from '@/utils/dateUtils';
 import { USER_NAME_KEY } from '@/utils/personalization';
 
 const CHANNEL_ID = 'reminders';
+const POMODORO_NOTIFICATION_ID = 'pomodoro';
+const POMODORO_ALARM_CHANNEL_ID = 'pomodoro-alarm';
+const POMODORO_SILENT_CHANNEL_ID = 'pomodoro-silent';
+/** Bundled via the expo-notifications plugin (`sounds` in app.json). */
+const POMODORO_ALARM_SOUND = 'pomodoro_alarm.wav';
+const POMODORO_VIBRATION = [0, 500, 250, 500, 250, 500];
 // Up to 5 times × 14 days = 70 alarms, well under Android's 500-per-app limit.
 const DAYS_AHEAD = 14;
 
@@ -60,6 +66,26 @@ export async function ensureNotificationPermission(ask: boolean): Promise<boolea
       name: 'Recordatorio diario',
       importance: Notifications.AndroidImportance.HIGH,
     });
+    // Android fixes a channel's sound once created, so each pomodoro sound mode gets its own.
+    await Notifications.setNotificationChannelAsync(POMODORO_ALARM_CHANNEL_ID, {
+      name: 'Fin del pomodoro (alarma)',
+      importance: Notifications.AndroidImportance.MAX,
+      sound: POMODORO_ALARM_SOUND,
+      // Alarm usage plays on the alarm volume, so it is heard with the ringer silenced.
+      audioAttributes: {
+        usage: Notifications.AndroidAudioUsage.ALARM,
+        contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+      },
+      vibrationPattern: POMODORO_VIBRATION,
+      enableVibrate: true,
+    });
+    await Notifications.setNotificationChannelAsync(POMODORO_SILENT_CHANNEL_ID, {
+      name: 'Fin del pomodoro (solo vibración)',
+      importance: Notifications.AndroidImportance.HIGH,
+      sound: null,
+      vibrationPattern: POMODORO_VIBRATION,
+      enableVibrate: true,
+    });
   }
   const current = await Notifications.getPermissionsAsync();
   if (current.granted || !ask) {
@@ -90,7 +116,12 @@ export async function rescheduleReminders({
   if (!Notifications || !(await ensureNotificationPermission(false))) {
     return;
   }
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  // Clear previous reminders but leave the running pomodoro's notification alone.
+  for (const scheduled of await Notifications.getAllScheduledNotificationsAsync()) {
+    if (scheduled.identifier !== POMODORO_NOTIFICATION_ID) {
+      await Notifications.cancelScheduledNotificationAsync(scheduled.identifier);
+    }
+  }
 
   const config = await loadReminderConfig(settings);
   const startDay = today();
@@ -108,6 +139,31 @@ export async function rescheduleReminders({
     await Notifications.scheduleNotificationAsync({
       content: { title: 'Fidelis', body },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date, channelId: CHANNEL_ID },
+    });
+  }
+}
+
+/** Replaces the pomodoro "phase finished" notification; `at: null` just cancels it. */
+export async function schedulePomodoroNotification(at: Date | null, body: string, alarmSound = true): Promise<void> {
+  const Notifications = loadNotifications();
+  if (!Notifications || !(await ensureNotificationPermission(false))) {
+    return;
+  }
+  await Notifications.cancelScheduledNotificationAsync(POMODORO_NOTIFICATION_ID);
+  if (at && at.getTime() > Date.now()) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: POMODORO_NOTIFICATION_ID,
+      content: {
+        title: 'Fidelis · Enfoque',
+        body,
+        sound: alarmSound ? POMODORO_ALARM_SOUND : false,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: at,
+        channelId: alarmSound ? POMODORO_ALARM_CHANNEL_ID : POMODORO_SILENT_CHANNEL_ID,
+      },
     });
   }
 }

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Fidelis",
     "slug": "fidelis",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "fidelis",
@@ -38,6 +38,9 @@
         "com.oppo.launcher.permission.WRITE_SETTINGS",
         "me.everything.badger.permission.BADGE_COUNT_READ",
         "me.everything.badger.permission.BADGE_COUNT_WRITE"
+      ],
+      "permissions": [
+        "android.permission.SCHEDULE_EXACT_ALARM"
       ]
     },
     "web": {
@@ -59,7 +62,10 @@
       [
         "expo-notifications",
         {
-          "color": "#3987e5"
+          "color": "#3987e5",
+          "sounds": [
+            "./assets/sounds/pomodoro_alarm.wav"
+          ]
         }
       ],
       [
@@ -70,8 +76,7 @@
               "arm64-v8a",
               "armeabi-v7a"
             ],
-            "enableMinifyInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
+            "enableMinifyInReleaseBuilds": true
           }
         }
       ],

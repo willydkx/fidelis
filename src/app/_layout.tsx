@@ -26,6 +26,10 @@ export default function RootLayout() {
               <NativeTabs.Trigger.Label>Hoy</NativeTabs.Trigger.Label>
               <NativeTabs.Trigger.Icon sf="checkmark.circle" md="event_available" />
             </NativeTabs.Trigger>
+            <NativeTabs.Trigger name="focus">
+              <NativeTabs.Trigger.Label>Enfoque</NativeTabs.Trigger.Label>
+              <NativeTabs.Trigger.Icon sf="timer" md="timer" />
+            </NativeTabs.Trigger>
             <NativeTabs.Trigger name="dashboard">
               <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
               <NativeTabs.Trigger.Icon sf="chart.bar" md="bar_chart" />
