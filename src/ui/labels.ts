@@ -1,6 +1,9 @@
 import { Cadence, ObjectiveStatus, TrackingType } from '@/models/enums';
-import { Objective } from '@/models/objective';
+import { NewObjective, Objective } from '@/models/objective';
 import { CATEGORICAL } from '@/ui/theme';
+
+/** Enough of an objective (saved or not yet created) to describe it. */
+type Describable = Pick<NewObjective, 'cadence' | 'trackingType' | 'targetValue' | 'unit' | 'daysOfWeek'>;
 
 export const WEEKDAY_ABBR = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
@@ -28,7 +31,7 @@ export function formatNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.', ',');
 }
 
-export function cadenceText(objective: Objective): string {
+export function cadenceText(objective: Describable): string {
   const label = CADENCE_LABELS[objective.cadence];
   if (objective.cadence === Cadence.CUSTOM_DAYS && objective.daysOfWeek?.length) {
     return `${label} (${objective.daysOfWeek.map((d) => WEEKDAY_ABBR[d]).join(',')})`;
@@ -36,8 +39,8 @@ export function cadenceText(objective: Objective): string {
   return label;
 }
 
-export function targetText(objective: Objective): string | null {
-  if (objective.targetValue === null) {
+export function targetText(objective: Describable): string | null {
+  if (objective.targetValue == null) {
     return null;
   }
   if (objective.trackingType === TrackingType.BOOLEAN) {

@@ -9,7 +9,9 @@ import { Body, Card, Caption, EmptyState, Icon, IconButton, SectionHeader } from
 import { ObjectiveEntryRow } from '@/ui/ObjectiveEntryRow';
 import { Screen } from '@/ui/Screen';
 import { colors, radius, space } from '@/ui/theme';
-import { addDays, formatLong, ISODate, makeDate, today } from '@/utils/dateUtils';
+import { useNow } from '@/ui/useNow';
+import { addDays, formatLong, ISODate, makeDate } from '@/utils/dateUtils';
+import { greeting, USER_NAME_KEY } from '@/utils/personalization';
 
 const CADENCE_SECTIONS: [Cadence, string][] = [
   [Cadence.DAILY, 'Diarios'],
@@ -25,9 +27,16 @@ function toJsDate(day: ISODate): Date {
 
 export default function TodayScreen() {
   const { entries, notifyChanged } = useData();
-  const [day, setDay] = useState<ISODate>(today());
+  const now = useNow();
+  const currentDay = makeDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
+  // null = follow today, so the screen rolls over at midnight if the app stays open.
+  const [pickedDay, setPickedDay] = useState<ISODate | null>(null);
+  const day = pickedDay ?? currentDay;
+  const isToday = day === currentDay;
+  const setDay = (next: ISODate) => setPickedDay(next === currentDay ? null : next);
   const [iosPickerOpen, setIosPickerOpen] = useState(false);
-  const isToday = day === today();
+
+  const userName = useDataQuery(async ({ settings }) => settings.get(USER_NAME_KEY));
 
   const data = useDataQuery(
     async ({ objectives, entries, aggregation }) => {
@@ -61,7 +70,7 @@ export default function TodayScreen() {
     : 0;
 
   return (
-    <Screen title={isToday ? 'Hoy' : 'Registro'}>
+    <Screen title={isToday ? greeting(now.getHours(), userName) : 'Registro'}>
       <View style={styles.dateRow}>
         <IconButton onPress={() => setDay(addDays(day, -1))} accessibilityLabel="Día anterior">
           <Icon android="chevron_left" ios="chevron.left" />
@@ -75,7 +84,7 @@ export default function TodayScreen() {
         </IconButton>
       </View>
       {!isToday && (
-        <Pressable onPress={() => setDay(today())} style={styles.backToToday}>
+        <Pressable onPress={() => setPickedDay(null)} style={styles.backToToday}>
           <Text style={{ color: colors.accent, fontWeight: '600' }}>Volver a hoy</Text>
         </Pressable>
       )}

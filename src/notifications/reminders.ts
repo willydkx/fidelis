@@ -16,6 +16,7 @@ import { ObjectivesRepository } from '@/repositories/objectivesRepository';
 import { SettingsRepository } from '@/repositories/settingsRepository';
 import { AggregationService } from '@/services/aggregationService';
 import { today } from '@/utils/dateUtils';
+import { USER_NAME_KEY } from '@/utils/personalization';
 
 const CHANNEL_ID = 'reminders';
 // Up to 5 times × 14 days = 70 alarms, well under Android's 500-per-app limit.
@@ -101,7 +102,7 @@ export async function rescheduleReminders({
     todayComplete: (await aggregation.dailyCompletionRate(startDay, null)) >= 1,
     daysAhead: DAYS_AHEAD,
   });
-  const body = reminderMessage(config);
+  const body = reminderMessage(config, await settings.get(USER_NAME_KEY));
 
   for (const date of moments) {
     await Notifications.scheduleNotificationAsync({

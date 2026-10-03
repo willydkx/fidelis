@@ -8,6 +8,7 @@ import { EntriesRepository } from '@/repositories/entriesRepository';
 import { ObjectivesRepository } from '@/repositories/objectivesRepository';
 import { SettingsRepository } from '@/repositories/settingsRepository';
 import { AggregationService } from '@/services/aggregationService';
+import { USER_NAME_KEY } from '@/utils/personalization';
 
 export interface DataContextValue {
   db: SQLiteDatabase;
@@ -39,10 +40,14 @@ function DataContextProvider({ children }: { children: ReactNode }) {
 
   const notifyChanged = useCallback(() => setVersion((v) => v + 1), []);
 
-  // Ask once on launch; Settings offers the prompt again if it was dismissed.
+  // Ask once on launch for returning users; first-time users are asked at the end of the
+  // welcome screen instead. Settings offers the prompt again if it was dismissed.
   useEffect(() => {
-    ensureNotificationPermission(true).then(notifyChanged, (error) => console.warn('[Fidelis] permission', error));
-  }, [notifyChanged]);
+    repos.settings
+      .get(USER_NAME_KEY)
+      .then((name) => (name === null ? false : ensureNotificationPermission(true)))
+      .then(notifyChanged, (error) => console.warn('[Fidelis] permission', error));
+  }, [repos, notifyChanged]);
 
   // Any write can change whether today's reminder is still needed.
   useEffect(() => {

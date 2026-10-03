@@ -1,8 +1,6 @@
 import { Cadence, ObjectiveStatus, TrackingType } from '@/models/enums';
 import { Objective } from '@/models/objective';
 import {
-  ALWAYS_REMINDER_MESSAGE,
-  DEFAULT_REMINDER_MESSAGE,
   defaultReminderConfig,
   parseReminderConfig,
   planReminders,
@@ -94,8 +92,30 @@ describe('planReminders', () => {
   });
 });
 
-test('reminderMessage uses custom text or a mode-appropriate default', () => {
-  expect(reminderMessage({ ...defaultReminderConfig(), message: '  ¡A por ello!  ' })).toBe('¡A por ello!');
-  expect(reminderMessage(defaultReminderConfig())).toBe(DEFAULT_REMINDER_MESSAGE);
-  expect(reminderMessage({ ...defaultReminderConfig(), onlyIfPending: false })).toBe(ALWAYS_REMINDER_MESSAGE);
+describe('reminderMessage', () => {
+  test('personalizes the defaults with the user name', () => {
+    expect(reminderMessage(defaultReminderConfig(), 'Willy')).toBe(
+      'Willy, todavía tienes objetivos de hoy sin registrar. ¡No rompas la racha!',
+    );
+    expect(reminderMessage({ ...defaultReminderConfig(), onlyIfPending: false }, 'Willy')).toBe(
+      'Willy, es hora de registrar tus objetivos de hoy.',
+    );
+  });
+
+  test('defaults read naturally without a name', () => {
+    expect(reminderMessage(defaultReminderConfig(), null)).toBe(
+      'Todavía tienes objetivos de hoy sin registrar. ¡No rompas la racha!',
+    );
+    expect(reminderMessage({ ...defaultReminderConfig(), onlyIfPending: false }, '')).toBe(
+      'Es hora de registrar tus objetivos de hoy.',
+    );
+  });
+
+  test('custom text can use {nombre}', () => {
+    expect(reminderMessage({ ...defaultReminderConfig(), message: '  ¡A por ello, {nombre}!  ' }, 'Willy')).toBe(
+      '¡A por ello, Willy!',
+    );
+    expect(reminderMessage({ ...defaultReminderConfig(), message: '¡A por ello, {nombre}!' }, null)).toBe('¡A por ello!');
+    expect(reminderMessage({ ...defaultReminderConfig(), message: 'Sin marcador' }, 'Willy')).toBe('Sin marcador');
+  });
 });

@@ -14,10 +14,12 @@
 
 ## Qué hace
 
+- **Bienvenida personalizada**: te pregunta tu nombre y qué quieres mejorar (ejercicio y salud, mente y aprendizaje, vida digital y finanzas, hogar y social) y te sugiere unos pocos objetivos para empezar, con metas suaves o ambiciosas.
+- **Te saluda por tu nombre** según la hora del día («Buenos días, Ana») y lo usa en los recordatorios.
 - **Registro diario**: marca los objetivos de sí/no con un toque o apunta cantidades en los numéricos (minutos, páginas, km…). Puedes registrar también días anteriores.
 - **Cadencias flexibles**: objetivos diarios, semanales, mensuales o solo ciertos días de la semana. En los semanales y mensuales puedes pedir «N veces».
 - **Estadísticas**: puntuación de eficiencia de los últimos 30 días, cumplimiento diario, mapa de constancia anual estilo GitHub, rachas actuales y récord, y cumplimiento por objetivo.
-- **Recordatorios configurables**: hasta 5 horas al día, los días de la semana que elijas, avisar siempre o solo si te faltan objetivos, y mensaje personalizado.
+- **Recordatorios configurables**: hasta 5 horas al día, los días de la semana que elijas, avisar siempre o solo si te faltan objetivos, y mensaje personalizado (con `{nombre}` para incluir tu nombre).
 - **Organización**: pausa, archiva, reordena o elimina objetivos, y elige su color.
 
 ## Instalación

@@ -1,14 +1,15 @@
 import { DEFAULT_REMINDER_TIME } from '@/config';
 import { isApplicableOn, Objective } from '@/models/objective';
 import { addDays, ISODate, weekday } from '@/utils/dateUtils';
+import { fillName } from '@/utils/personalization';
 
 /** Settings key from before reminders were configurable: a single 'HH:MM'. */
 export const LEGACY_REMINDER_TIME_KEY = 'daily_reminder_time';
 export const REMINDER_CONFIG_KEY = 'reminder_config';
 
 export const MAX_REMINDER_TIMES = 5;
-export const DEFAULT_REMINDER_MESSAGE = 'Todavía tienes objetivos de hoy sin registrar. ¡No rompas la racha!';
-export const ALWAYS_REMINDER_MESSAGE = 'Es hora de registrar tus objetivos de hoy.';
+export const DEFAULT_REMINDER_MESSAGE = '{nombre}, todavía tienes objetivos de hoy sin registrar. ¡No rompas la racha!';
+export const ALWAYS_REMINDER_MESSAGE = '{nombre}, es hora de registrar tus objetivos de hoy.';
 
 export interface ReminderConfig {
   enabled: boolean;
@@ -18,7 +19,7 @@ export interface ReminderConfig {
   days: number[];
   /** Skip days with nothing to log, and skip today's once everything is done. */
   onlyIfPending: boolean;
-  /** Empty → default text. */
+  /** Empty → default text. May contain {nombre}. */
   message: string;
 }
 
@@ -53,8 +54,10 @@ export function parseReminderConfig(stored: string | null, legacyTime: string | 
   }
 }
 
-export function reminderMessage(config: ReminderConfig): string {
-  return config.message.trim() || (config.onlyIfPending ? DEFAULT_REMINDER_MESSAGE : ALWAYS_REMINDER_MESSAGE);
+/** The notification text, with {nombre} replaced by the user's name. */
+export function reminderMessage(config: ReminderConfig, userName: string | null): string {
+  const template = config.message.trim() || (config.onlyIfPending ? DEFAULT_REMINDER_MESSAGE : ALWAYS_REMINDER_MESSAGE);
+  return fillName(template, userName);
 }
 
 function atTime(day: ISODate, time: string): Date {

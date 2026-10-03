@@ -18,6 +18,7 @@ import {
 import { Body, Button, Caption, Card, Icon, Title } from '@/ui/components';
 import { WEEKDAY_ABBR } from '@/ui/labels';
 import { colors, radius, space } from '@/ui/theme';
+import { NAME_PLACEHOLDER, USER_NAME_KEY } from '@/utils/personalization';
 
 const DAY_PRESETS: { label: string; days: number[] }[] = [
   { label: 'Todos', days: [0, 1, 2, 3, 4, 5, 6] },
@@ -43,6 +44,7 @@ export function ReminderSettings() {
   const data = useDataQuery(async ({ settings }) => ({
     config: await loadReminderConfig(settings),
     notificationsAllowed: await ensureNotificationPermission(false),
+    userName: await settings.get(USER_NAME_KEY),
   }));
   // Message being typed; saved when the field loses focus.
   const [messageDraft, setMessageDraft] = useState<string | null>(null);
@@ -184,13 +186,13 @@ export function ReminderSettings() {
               }
               setMessageDraft(null);
             }}
-            placeholder={reminderMessage({ ...config, message: '' })}
+            placeholder={reminderMessage({ ...config, message: '' }, data.userName)}
             placeholderTextColor={colors.mutedInk}
             multiline
             maxLength={160}
             style={styles.input}
           />
-          <Caption>Déjalo vacío para usar el mensaje por defecto.</Caption>
+          <Caption>Déjalo vacío para usar el mensaje por defecto. Escribe {NAME_PLACEHOLDER} donde quieras que aparezca tu nombre.</Caption>
         </View>
       </View>
     </Card>
