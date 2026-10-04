@@ -9,7 +9,7 @@
 <p align="center">
   <a href="../../releases/latest"><b>⬇️ Descargar el APK (Android)</b></a>
   &nbsp;·&nbsp;
-  <a href="https://willydkx.github.io/fidelis-android/"><b>🌐 Abrir la versión web</b></a>
+  <a href="https://willydkx.github.io/fidelis/"><b>🌐 Abrir la versión web</b></a>
 </p>
 
 ---
@@ -37,7 +37,7 @@ Requiere Android 7.0 o superior.
 
 ## Versión web (iPhone, PC y cualquier navegador)
 
-Abre **https://willydkx.github.io/fidelis-android/** e instálala como una app:
+Abre **https://willydkx.github.io/fidelis/** e instálala como una app:
 
 - **iPhone o iPad (Safari):** botón *Compartir* → **Añadir a pantalla de inicio**.
 - **Android (Chrome):** menú ⋮ → **Instalar aplicación** (o *Añadir a pantalla de inicio*).

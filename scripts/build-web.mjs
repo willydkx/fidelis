@@ -7,7 +7,7 @@ import { copyFileSync, readdirSync, readFileSync, statSync, writeFileSync } from
 import { join, relative, sep } from 'node:path';
 
 const DIST = process.argv[2] ?? 'dist';
-// Where the site lives (e.g. /fidelis-android/ on GitHub Pages), from experiments.baseUrl.
+// Where the site lives (e.g. /fidelis/ on GitHub Pages), from experiments.baseUrl.
 const appConfig = JSON.parse(readFileSync(new URL('../app.json', import.meta.url), 'utf8'));
 const BASE = `${appConfig.expo.experiments?.baseUrl ?? ''}/`;
 
