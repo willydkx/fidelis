@@ -10,7 +10,7 @@
     <RootNamespace>Fidelis.Desktop</RootNamespace>
     <ApplicationIcon>Fidelis.ico</ApplicationIcon>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <Product>Fidelis</Product>
     <Company>willydkx</Company>
     <!-- Uses the .NET 8 Desktop Runtime already on the PC instead of bundling it. -->

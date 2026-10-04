@@ -8,6 +8,7 @@ import { isApplicableOn } from '@/models/objective';
 import { Body, Card, Caption, EmptyState, Icon, IconButton, SectionHeader } from '@/ui/components';
 import { ObjectiveEntryRow } from '@/ui/ObjectiveEntryRow';
 import { Screen } from '@/ui/Screen';
+import { JournalCard, JournalModal } from '@/ui/journal';
 import { colors, radius, space } from '@/ui/theme';
 import { useKeyboardShortcuts } from '@/ui/useKeyboardShortcuts';
 import { useNow } from '@/ui/useNow';
@@ -37,6 +38,7 @@ export default function TodayScreen() {
   const isToday = day === currentDay;
   const setDay = (next: ISODate) => setPickedDay(next === currentDay ? null : next);
   const [inlinePickerOpen, setInlinePickerOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
   useKeyboardShortcuts({
     ArrowLeft: () => setDay(addDays(day, -1)),
     ArrowRight: () => !isToday && setDay(addDays(day, 1)),
@@ -144,6 +146,21 @@ export default function TodayScreen() {
           })}
         </>
       )}
+
+      {data && (
+        <View style={styles.journalSection}>
+          <SectionHeader>Registro diario</SectionHeader>
+          <JournalCard key={day} day={day} onOpenJournal={() => setJournalOpen(true)} />
+        </View>
+      )}
+      <JournalModal
+        visible={journalOpen}
+        onClose={() => setJournalOpen(false)}
+        onSelect={(selected) => {
+          setJournalOpen(false);
+          setDay(selected);
+        }}
+      />
     </Screen>
   );
 }
@@ -155,4 +172,12 @@ const styles = StyleSheet.create({
   backToToday: { alignSelf: 'center', paddingVertical: space.xs },
   progressTrack: { height: 8, backgroundColor: colors.gridline, borderRadius: radius.pill, overflow: 'hidden' },
   progressBar: { height: '100%', borderRadius: radius.pill },
+  // Set apart from the objectives above.
+  journalSection: {
+    gap: space.sm,
+    marginTop: space.lg,
+    paddingTop: space.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
 });

@@ -102,6 +102,19 @@ CREATE TABLE sync_tombstones (
 );
 `,
   ],
+  [
+    4,
+    `
+-- Diary: one entry per day. Emptying an entry keeps the row (text '' and no mood), so the
+-- emptying syncs like any other change and no tombstones are needed.
+CREATE TABLE journal_entries (
+    entry_date   TEXT    PRIMARY KEY,
+    text         TEXT    NOT NULL DEFAULT '',
+    mood         INTEGER CHECK (mood BETWEEN 1 AND 5),
+    modified_at  INTEGER NOT NULL DEFAULT 0
+);
+`,
+  ],
 ];
 
 export async function runMigrations(db: Db): Promise<void> {

@@ -2,14 +2,16 @@ import { StyleSheet, Text } from 'react-native';
 
 import { BreakdownBars, StreakBars } from '@/charts/BarList';
 import { Heatmap } from '@/charts/Heatmap';
+import { MoodChart } from '@/charts/MoodChart';
 import { TrendChart } from '@/charts/TrendChart';
 import { useDataQuery } from '@/data/DataProvider';
 import { ObjectiveStatus } from '@/models/enums';
+import { Mood } from '@/repositories/journalRepository';
 import { Caption, Card, EmptyState, Title } from '@/ui/components';
 import { Columns } from '@/ui/layout';
 import { Screen } from '@/ui/Screen';
 import { colors, space } from '@/ui/theme';
-import { addDays, today } from '@/utils/dateUtils';
+import { addDays, ISODate, today } from '@/utils/dateUtils';
 
 const SCORE_TIERS: [number, string, string][] = [
   [80, colors.good, 'Excelente'],
@@ -18,15 +20,36 @@ const SCORE_TIERS: [number, string, string][] = [
   [0, colors.critical, 'Crítico'],
 ];
 
+const average = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
+const formatMood = (value: number) => value.toFixed(1).replace('.', ',');
+
+/** e.g. "Media: 3,8 · Días con todo cumplido: 4,2 · Resto: 3,1" (the comparison needs 3+ days on each side). */
+function moodSummary(moods: Map<ISODate, Mood>, rates: Map<ISODate, number>): string {
+  const all = [...moods.values()];
+  const parts = [`Media: ${formatMood(average(all))}`];
+  const done: number[] = [];
+  const rest: number[] = [];
+  for (const [day, mood] of moods) {
+    const rate = rates.get(day);
+    if (rate !== undefined) (rate >= 1 ? done : rest).push(mood);
+  }
+  if (done.length >= 3 && rest.length >= 3) {
+    parts.push(`Días con todo cumplido: ${formatMood(average(done))}`, `Resto: ${formatMood(average(rest))}`);
+  }
+  return parts.join(' · ');
+}
+
 export default function DashboardScreen() {
-  const data = useDataQuery(async ({ objectives, aggregation }) => {
+  const data = useDataQuery(async ({ objectives, aggregation, journal }) => {
     const day = today();
     const year = Number(day.slice(0, 4));
+    const start = addDays(day, -29);
     const active = await objectives.list(ObjectiveStatus.ACTIVE);
-    const [score, trend, heatmap] = await Promise.all([
+    const [score, trend, heatmap, moods] = await Promise.all([
       aggregation.efficiencyScore(day),
-      aggregation.completionRatesInRange(addDays(day, -29), day),
+      aggregation.completionRatesInRange(start, day),
       aggregation.heatmapData(year),
+      journal.moodsInRange(start, day),
     ]);
     const perObjective = await Promise.all(
       active.map(async (o) => ({
@@ -36,7 +59,8 @@ export default function DashboardScreen() {
         ratio: await aggregation.averageCompletionRatio(o, day),
       })),
     );
-    return { day, year, score, trend: [...trend.entries()], heatmap, perObjective };
+    const mood = moods.size ? { start, moods, summary: moodSummary(moods, trend) } : null;
+    return { day, year, score, trend: [...trend.entries()], heatmap, perObjective, mood };
   });
 
   if (!data) {
@@ -67,6 +91,14 @@ export default function DashboardScreen() {
           <TrendChart rates={data.trend} />
         </Card>
       </Columns>
+
+      {data.mood && (
+        <Card style={styles.chartCard}>
+          <Title>Ánimo (últimos 30 días)</Title>
+          <MoodChart start={data.mood.start} end={data.day} moods={data.mood.moods} />
+          <Caption>{data.mood.summary}</Caption>
+        </Card>
+      )}
 
       <Card style={styles.chartCard}>
         <Title>Mapa de constancia {data.year}</Title>

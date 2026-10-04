@@ -17,6 +17,7 @@
 ## Qué hace
 
 - **Registro diario**: marca los objetivos de sí/no con un toque o apunta cantidades en los numéricos (minutos, páginas, km…). También puedes registrar días anteriores.
+- **Diario**: en Hoy, cuenta cómo te ha ido el día y elige una carita de ánimo. En *Ver diario* tienes todos los días, con buscador, y en el Dashboard la evolución de tu ánimo comparada con los días en que cumpliste todo.
 - **Cadencias flexibles**: objetivos diarios, semanales, mensuales o solo ciertos días de la semana. En los semanales y mensuales puedes pedir «N veces».
 - **Estadísticas**: eficiencia de los últimos 30 días, cumplimiento diario, mapa de constancia anual, rachas actuales y récord, y cumplimiento por objetivo.
 - **Recordatorios**: hasta 5 horas al día, los días que elijas, siempre o solo si te faltan objetivos, y con tu propio mensaje.
@@ -70,11 +71,12 @@ Requiere Windows 10 u 11 con el [runtime de escritorio de .NET 8](https://dotnet
 
 ## Sincronización (Android y Windows)
 
-En *Ajustes → Sincronización → Conectar con Google* puedes mantener iguales tus objetivos y registros en el móvil y en el ordenador. Después es automática: al abrir la app, unos segundos después de cada cambio y cada pocos minutos mientras está abierta.
+En *Ajustes → Sincronización → Conectar con Google* puedes mantener iguales tus objetivos, registros y diario en el móvil y en el ordenador. Después es automática: al abrir la app, unos segundos después de cada cambio y cada pocos minutos mientras está abierta.
 
 - Los datos se guardan en **tu propio Google Drive**, en una carpeta oculta que solo Fidelis puede ver. Fidelis no ve tus archivos, tu correo ni tu contraseña, y no hay ningún servidor de por medio.
 - Si un mismo dato cambia en dos sitios, gana el cambio más reciente. Los borrados también se sincronizan.
 - Los recordatorios y el pomodoro son propios de cada dispositivo.
+- La copia de Drive no lleva un cifrado propio de Fidelis: la protege tu cuenta de Google, como al resto de tu Drive. Tenlo en cuenta con lo que escribas en el diario.
 - Puedes quitarle el acceso cuando quieras en *Ajustes → Sincronización → Desconectar* o desde [tu cuenta de Google](https://myaccount.google.com/permissions).
 - La versión web del navegador no sincroniza.
 

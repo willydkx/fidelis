@@ -1,5 +1,6 @@
 import { Db, SqlValue } from '@/db/types';
 import { Cadence, ObjectiveStatus, TrackingType } from '@/models/enums';
+import { JOURNAL_MAX_LENGTH } from '@/repositories/journalRepository';
 import { USER_NAME_KEY } from '@/utils/personalization';
 
 /*
@@ -48,6 +49,13 @@ export interface SnapshotSetting {
   modified_at: number;
 }
 
+export interface SnapshotJournalEntry {
+  entry_date: string;
+  text: string;
+  mood: number | null;
+  modified_at: number;
+}
+
 export interface Tombstone {
   kind: 'objective' | 'entry';
   key: string;
@@ -60,6 +68,8 @@ export interface Snapshot {
   entries: SnapshotEntry[];
   settings: SnapshotSetting[];
   tombstones: Tombstone[];
+  /** Added in 1.4.0. Optional so copies from 1.3.0 still load, and 1.3.0 ignores it. */
+  journal?: SnapshotJournalEntry[];
 }
 
 const OBJECTIVE_FIELDS = [
@@ -102,7 +112,11 @@ export async function buildSnapshot(db: Db): Promise<Snapshot> {
     'SELECT kind, key, deleted_at FROM sync_tombstones ORDER BY kind, key',
     [],
   );
-  return { format: SNAPSHOT_FORMAT, objectives, entries, settings, tombstones };
+  const journal = await db.getAllAsync<SnapshotJournalEntry>(
+    'SELECT entry_date, text, mood, modified_at FROM journal_entries ORDER BY entry_date',
+    [],
+  );
+  return { format: SNAPSHOT_FORMAT, objectives, entries, settings, tombstones, journal };
 }
 
 /*
@@ -156,6 +170,15 @@ function isSetting(t: SnapshotSetting): boolean {
   return isText(t.key, 100) && isTextOrNull(t.value, 1_000) && isTime(t.modified_at);
 }
 
+function isJournalEntry(j: SnapshotJournalEntry): boolean {
+  return (
+    DATE.test(String(j.entry_date)) &&
+    isText(j.text, JOURNAL_MAX_LENGTH) &&
+    (j.mood === null || (Number.isInteger(j.mood) && j.mood >= 1 && j.mood <= 5)) &&
+    isTime(j.modified_at)
+  );
+}
+
 function isTombstone(t: Tombstone): boolean {
   if (!isTime(t.deleted_at)) return false;
   if (t.kind === 'objective') return UID.test(String(t.key));
@@ -184,7 +207,9 @@ export function parseSnapshot(text: string): Snapshot {
     value.objectives.every((o) => !!o && isObjective(o)) &&
     value.entries.every((e) => !!e && isEntry(e)) &&
     value.settings.every((t) => !!t && isSetting(t)) &&
-    value.tombstones.every((t) => !!t && isTombstone(t));
+    value.tombstones.every((t) => !!t && isTombstone(t)) &&
+    (value.journal === undefined ||
+      (Array.isArray(value.journal) && value.journal.every((j) => !!j && isJournalEntry(j))));
   if (!valid) throw invalid();
   return value;
 }
@@ -284,6 +309,18 @@ export async function mergeSnapshot(db: Db, remote: Snapshot): Promise<boolean> 
        ON CONFLICT (key) DO UPDATE SET value = excluded.value, modified_at = excluded.modified_at
        WHERE excluded.modified_at > app_settings.modified_at`,
       [setting.key, setting.value, setting.modified_at],
+    );
+    changed ||= result.changes > 0;
+  }
+
+  // 5. Diary.
+  for (const entry of remote.journal ?? []) {
+    const result = await db.runAsync(
+      `INSERT INTO journal_entries (entry_date, text, mood, modified_at) VALUES (?, ?, ?, ?)
+       ON CONFLICT (entry_date) DO UPDATE SET
+           text = excluded.text, mood = excluded.mood, modified_at = excluded.modified_at
+       WHERE excluded.modified_at > journal_entries.modified_at`,
+      [entry.entry_date, entry.text, entry.mood, entry.modified_at],
     );
     changed ||= result.changes > 0;
   }

@@ -1,4 +1,5 @@
-import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
+import type * as GoogleSignInModule from '@react-native-google-signin/google-signin';
+import { isRunningInExpoGo } from 'expo';
 
 import { DRIVE_APPDATA_SCOPE, GOOGLE_WEB_CLIENT_ID } from '@/config';
 
@@ -8,18 +9,22 @@ import { DRIVE_APPDATA_SCOPE, GOOGLE_WEB_CLIENT_ID } from '@/config';
  * sees the password. The browser/desktop version is in googleAuth.web.ts.
  */
 
-export const googleAuthAvailable = GOOGLE_WEB_CLIENT_ID !== '';
+// Expo Go has no Google sign-in native module, and importing it there throws; sync is
+// simply hidden in Expo Go and the module is only loaded on first use.
+export const googleAuthAvailable = GOOGLE_WEB_CLIENT_ID !== '' && !isRunningInExpoGo();
 
-let configured = false;
+let signInModule: typeof GoogleSignInModule | null = null;
 function configure() {
-  if (configured) return;
-  GoogleSignin.configure({ webClientId: GOOGLE_WEB_CLIENT_ID, scopes: [DRIVE_APPDATA_SCOPE] });
-  configured = true;
+  if (signInModule) return signInModule;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- must stay lazy, see above
+  signInModule = require('@react-native-google-signin/google-signin') as typeof GoogleSignInModule;
+  signInModule.GoogleSignin.configure({ webClientId: GOOGLE_WEB_CLIENT_ID, scopes: [DRIVE_APPDATA_SCOPE] });
+  return signInModule;
 }
 
 /** Opens Google's account picker; resolves with the chosen account, or null if cancelled. */
 export async function connectGoogle(): Promise<string | null> {
-  configure();
+  const { GoogleSignin, isSuccessResponse } = configure();
   await GoogleSignin.hasPlayServices();
   const response = await GoogleSignin.signIn();
   return isSuccessResponse(response) ? response.data.user.email : null;
@@ -27,25 +32,25 @@ export async function connectGoogle(): Promise<string | null> {
 
 /** The account connected earlier, restored without asking anything; null if none. */
 export async function googleAccount(): Promise<string | null> {
-  configure();
+  const { GoogleSignin } = configure();
   const response = await GoogleSignin.signInSilently();
   return response.type === 'success' ? response.data.user.email : null;
 }
 
 export async function googleAccessToken(): Promise<string> {
-  configure();
+  const { GoogleSignin } = configure();
   if (!GoogleSignin.getCurrentUser()) await GoogleSignin.signInSilently();
   return (await GoogleSignin.getTokens()).accessToken;
 }
 
 /** Drops a token Google has rejected, so the next request gets a fresh one. */
 export async function discardAccessToken(token: string): Promise<void> {
-  await GoogleSignin.clearCachedAccessToken(token);
+  await configure().GoogleSignin.clearCachedAccessToken(token);
 }
 
 /** Forgets the account and withdraws Fidelis's access to it. */
 export async function disconnectGoogle(): Promise<void> {
-  configure();
+  const { GoogleSignin } = configure();
   try {
     await GoogleSignin.revokeAccess();
   } finally {

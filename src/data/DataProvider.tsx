@@ -4,6 +4,7 @@ import { DatabaseProvider, useDb } from '@/data/database';
 import { Db } from '@/db/types';
 import { ensureNotificationPermission, rescheduleReminders } from '@/notifications/reminders';
 import { EntriesRepository } from '@/repositories/entriesRepository';
+import { JournalRepository } from '@/repositories/journalRepository';
 import { ObjectivesRepository } from '@/repositories/objectivesRepository';
 import { SettingsRepository } from '@/repositories/settingsRepository';
 import { AggregationService } from '@/services/aggregationService';
@@ -13,6 +14,7 @@ export interface DataContextValue {
   db: Db;
   objectives: ObjectivesRepository;
   entries: EntriesRepository;
+  journal: JournalRepository;
   settings: SettingsRepository;
   aggregation: AggregationService;
   /** Bumped after every write; screens reload their data when it changes. */
@@ -32,6 +34,7 @@ function DataContextProvider({ children }: { children: ReactNode }) {
     return {
       objectives,
       entries,
+      journal: new JournalRepository(db),
       settings: new SettingsRepository(db),
       aggregation: new AggregationService(objectives, entries),
     };
