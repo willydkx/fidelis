@@ -7,7 +7,7 @@
 <p align="center">App para cumplir tus objetivos diarios, semanales y mensuales, y no romper la racha. Para Android, navegador y Windows.</p>
 
 <p align="center">
-  <a href="../../releases/latest"><b>⬇️ Descargar el APK (Android)</b></a>
+  <a href="../../releases/latest"><b>⬇️ Descargar (Android y Windows)</b></a>
   &nbsp;·&nbsp;
   <a href="https://willydkx.github.io/fidelis/"><b>🌐 Abrir la versión web</b></a>
 </p>
@@ -58,7 +58,15 @@ La misma app en una ventana para el PC, con menú lateral, Dashboard en columnas
 - **Al cerrar la ventana se queda junto al reloj** para avisarte de los recordatorios y del fin del pomodoro. La parte pesada (el motor web) se cierra del todo, así que en la bandeja apenas gasta memoria y nada de CPU. Para salir del todo: clic derecho en el icono → *Salir*.
 - Tus datos se guardan en `%LOCALAPPDATA%\Fidelis\fidelis.db`, un archivo SQLite normal (con una copia `.bak` del guardado anterior).
 
-Requiere Windows 10 u 11 con el [runtime de escritorio de .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0) y WebView2 (ya incluido en Windows 11). Por ahora se instala compilándola (ver más abajo).
+### Instalación en Windows
+
+1. Descarga `fidelis-X.Y.Z-windows.zip` de la [última versión](../../releases/latest).
+2. Descomprímelo en una carpeta fija (por ejemplo `Documentos\Fidelis`) y abre `Fidelis.exe`.
+3. Windows avisará de que es de un **editor desconocido**, porque la app no está firmada: pulsa **Más información → Ejecutar de todas formas**.
+
+Para actualizar, cierra Fidelis (clic derecho en el icono junto al reloj → *Salir*) y sustituye los archivos de la carpeta. Tus datos no se tocan.
+
+Requiere Windows 10 u 11 con el [runtime de escritorio de .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0) y WebView2 (ya incluido en Windows 11).
 
 ## Sincronización (Android y Windows)
 
