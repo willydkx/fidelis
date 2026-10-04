@@ -76,6 +76,8 @@ internal sealed class TrayContext : ApplicationContext
 
     public NotificationScheduler Scheduler { get; }
 
+    public GoogleAuth Google { get; } = new();
+
     public void ShowWindow()
     {
         if (_window is { IsClosingForGood: true })

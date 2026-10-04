@@ -4,10 +4,12 @@ import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 
 import { remindersSupported } from '@/notifications/reminders';
 import { isDesktop } from '@/platform/desktop';
+import { googleAuthAvailable } from '@/sync/googleAuth';
 import { Caption, Card } from '@/ui/components';
 import { DesktopSettings } from '@/ui/DesktopSettings';
 import { NameSettings } from '@/ui/NameSettings';
 import { ReminderSettings } from '@/ui/ReminderSettings';
+import { SyncSettings } from '@/ui/SyncSettings';
 import { Screen } from '@/ui/Screen';
 import { colors, space } from '@/ui/theme';
 
@@ -22,6 +24,7 @@ export default function SettingsScreen() {
   return (
     <Screen title="Ajustes">
       <NameSettings />
+      {googleAuthAvailable && <SyncSettings />}
       {remindersSupported || !isBrowser ? (
         <ReminderSettings />
       ) : (

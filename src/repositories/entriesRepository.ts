@@ -35,14 +35,15 @@ export class EntriesRepository {
     { completed, value = null, note = '' }: { completed: boolean; value?: number | null; note?: string },
   ): Promise<DailyEntry> {
     await this.db.runAsync(
-      `INSERT INTO daily_entries (objective_id, entry_date, completed, value, note)
-       VALUES (?, ?, ?, ?, ?)
+      `INSERT INTO daily_entries (objective_id, entry_date, completed, value, note, modified_at)
+       VALUES (?, ?, ?, ?, ?, ?)
        ON CONFLICT (objective_id, entry_date) DO UPDATE SET
            completed = excluded.completed,
            value = excluded.value,
            note = excluded.note,
-           updated_at = datetime('now')`,
-      [objectiveId, entryDate, completed ? 1 : 0, value, note],
+           updated_at = datetime('now'),
+           modified_at = excluded.modified_at`,
+      [objectiveId, entryDate, completed ? 1 : 0, value, note, Date.now()],
     );
     const row = await this.db.getFirstAsync<EntryRow>(
       'SELECT * FROM daily_entries WHERE objective_id = ? AND entry_date = ?',
@@ -75,6 +76,12 @@ export class EntriesRepository {
   }
 
   async deleteEntry(entryId: number): Promise<void> {
+    await this.db.runAsync(
+      `INSERT OR REPLACE INTO sync_tombstones (kind, key, deleted_at)
+       SELECT 'entry', o.uid || '|' || e.entry_date, ?
+       FROM daily_entries e JOIN objectives o ON o.id = e.objective_id WHERE e.id = ?`,
+      [Date.now(), entryId],
+    );
     await this.db.runAsync('DELETE FROM daily_entries WHERE id = ?', [entryId]);
   }
 }

@@ -15,9 +15,10 @@ export class SettingsRepository {
 
   async set(key: string, value: string): Promise<void> {
     await this.db.runAsync(
-      `INSERT INTO app_settings (key, value) VALUES (?, ?)
-       ON CONFLICT (key) DO UPDATE SET value = excluded.value`,
-      [key, value],
+      `INSERT INTO app_settings (key, value, modified_at) VALUES (?, ?, ?)
+       ON CONFLICT (key) DO UPDATE SET value = excluded.value, modified_at = excluded.modified_at
+       WHERE value IS NOT excluded.value`,
+      [key, value, Date.now()],
     );
   }
 }

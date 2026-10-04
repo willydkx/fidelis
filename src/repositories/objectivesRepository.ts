@@ -17,6 +17,8 @@ interface ObjectiveRow {
   created_at: string;
   archived_at: string | null;
   days_of_week: string | null;
+  uid: string;
+  modified_at: number;
 }
 
 function serializeDays(days: number[] | null | undefined): string | null {
@@ -51,8 +53,9 @@ export class ObjectivesRepository {
   async create(newObjective: NewObjective): Promise<Objective> {
     const result = await this.db.runAsync(
       `INSERT INTO objectives
-         (name, description, cadence, tracking_type, target_value, unit, color, sort_order, days_of_week)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (name, description, cadence, tracking_type, target_value, unit, color, sort_order, days_of_week,
+          uid, modified_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, lower(hex(randomblob(16))), ?)`,
       [
         newObjective.name,
         newObjective.description ?? null,
@@ -63,6 +66,7 @@ export class ObjectivesRepository {
         newObjective.color ?? null,
         newObjective.sortOrder ?? 0,
         serializeDays(newObjective.daysOfWeek),
+        Date.now(),
       ],
     );
     return (await this.get(result.lastInsertRowId))!;
@@ -90,7 +94,8 @@ export class ObjectivesRepository {
     await this.db.runAsync(
       `UPDATE objectives
        SET name = ?, description = ?, cadence = ?, tracking_type = ?,
-           target_value = ?, unit = ?, status = ?, color = ?, sort_order = ?, days_of_week = ?
+           target_value = ?, unit = ?, status = ?, color = ?, sort_order = ?, days_of_week = ?,
+           modified_at = ?
        WHERE id = ?`,
       [
         objective.name,
@@ -103,20 +108,26 @@ export class ObjectivesRepository {
         objective.color,
         objective.sortOrder,
         serializeDays(objective.daysOfWeek),
+        Date.now(),
         objective.id,
       ],
     );
   }
 
   async archive(objectiveId: number, asOf: ISODate = today()): Promise<void> {
-    await this.db.runAsync("UPDATE objectives SET status = 'archived', archived_at = ? WHERE id = ?", [
-      asOf,
-      objectiveId,
-    ]);
+    await this.db.runAsync(
+      "UPDATE objectives SET status = 'archived', archived_at = ?, modified_at = ? WHERE id = ?",
+      [asOf, Date.now(), objectiveId],
+    );
   }
 
-  /** Permanently removes the objective and all its logged entries. */
+  /** Permanently removes the objective and all its logged entries (on every synced device). */
   async delete(objectiveId: number): Promise<void> {
+    await this.db.runAsync(
+      `INSERT OR REPLACE INTO sync_tombstones (kind, key, deleted_at)
+       SELECT 'objective', uid, ? FROM objectives WHERE id = ?`,
+      [Date.now(), objectiveId],
+    );
     // Entries would also go via ON DELETE CASCADE; deleting them explicitly doesn't depend on
     // PRAGMA foreign_keys being on for this connection.
     await this.db.runAsync('DELETE FROM daily_entries WHERE objective_id = ?', [objectiveId]);
@@ -124,16 +135,21 @@ export class ObjectivesRepository {
   }
 
   async setStatus(objectiveId: number, status: ObjectiveStatus.ACTIVE | ObjectiveStatus.PAUSED): Promise<void> {
-    await this.db.runAsync('UPDATE objectives SET status = ?, archived_at = NULL WHERE id = ?', [
+    await this.db.runAsync('UPDATE objectives SET status = ?, archived_at = NULL, modified_at = ? WHERE id = ?', [
       status,
+      Date.now(),
       objectiveId,
     ]);
   }
 
   /** Persists a new display order: ids[0] gets sort_order 0, and so on. */
   async reorder(ids: number[]): Promise<void> {
+    const now = Date.now();
     for (const [index, id] of ids.entries()) {
-      await this.db.runAsync('UPDATE objectives SET sort_order = ? WHERE id = ?', [index, id]);
+      await this.db.runAsync(
+        'UPDATE objectives SET sort_order = ?, modified_at = ? WHERE id = ? AND sort_order != ?',
+        [index, now, id, index],
+      );
     }
   }
 }

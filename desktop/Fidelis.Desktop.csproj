@@ -10,7 +10,7 @@
     <RootNamespace>Fidelis.Desktop</RootNamespace>
     <ApplicationIcon>Fidelis.ico</ApplicationIcon>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <Product>Fidelis</Product>
     <Company>willydkx</Company>
     <!-- Uses the .NET 8 Desktop Runtime already on the PC instead of bundling it. -->
@@ -25,11 +25,14 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Fidelis.ico" LogicalName="Fidelis.ico" />
     <None Include="..\assets\sounds\pomodoro_alarm.wav" Link="pomodoro_alarm.wav" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Google OAuth client for sync. Not in the repo: see README. -->
+    <None Include="google-oauth.json" Condition="Exists('google-oauth.json')" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

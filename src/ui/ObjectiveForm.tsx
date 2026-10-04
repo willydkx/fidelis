@@ -123,6 +123,7 @@ Si solo quieres dejar de verlo, mejor archívalo: conserva sus registros y estad
           <Field label="Nombre">
             <TextInput
               value={values.name}
+              maxLength={100}
               onChangeText={(t) => set('name', t)}
               placeholder="Meditar, leer, correr..."
               placeholderTextColor={colors.mutedInk}
@@ -134,6 +135,7 @@ Si solo quieres dejar de verlo, mejor archívalo: conserva sus registros y estad
           <Field label="Descripción (opcional)">
             <TextInput
               value={values.description ?? ''}
+              maxLength={1000}
               onChangeText={(t) => set('description', t)}
               multiline
               style={[styles.input, { minHeight: 64, textAlignVertical: 'top' }]}
@@ -189,6 +191,7 @@ Si solo quieres dejar de verlo, mejor archívalo: conserva sus registros y estad
                   <Field label="Unidad">
                     <TextInput
                       value={values.unit ?? ''}
+                      maxLength={30}
                       onChangeText={(t) => set('unit', t)}
                       placeholder="minutos, páginas..."
                       placeholderTextColor={colors.mutedInk}

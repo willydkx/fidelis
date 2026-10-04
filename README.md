@@ -24,6 +24,7 @@
 - **Recordatorios configurables**: hasta 5 horas al día, los días de la semana que elijas, avisar siempre o solo si te faltan objetivos, y mensaje personalizado (con `{nombre}` para incluir tu nombre).
 - **Temporizador pomodoro (pestaña Enfoque)**: duraciones de enfoque y descansos personalizables, ciclo con descanso largo, inicio automático opcional y alarma al terminar cada fase (suena con el volumen de alarma o solo vibra). Puedes vincularlo a un objetivo en minutos para que cada sesión sume su tiempo al registro del día.
 - **Organización**: pausa, archiva, reordena o elimina objetivos, y elige su color.
+- **Sincronización entre el móvil y el ordenador** a través de tu Google Drive (opcional, ver más abajo).
 
 ## Instalación
 
@@ -59,10 +60,21 @@ La misma app en una ventana para el PC, con menú lateral, Dashboard en columnas
 
 Requiere Windows 10 u 11 con el [runtime de escritorio de .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0) y WebView2 (ya incluido en Windows 11). Por ahora se instala compilándola (ver más abajo).
 
+## Sincronización (Android y Windows)
+
+En *Ajustes → Sincronización → Conectar con Google* puedes mantener iguales tus objetivos y registros en el móvil y en el ordenador. Después es automática: al abrir la app, unos segundos después de cada cambio y cada pocos minutos mientras está abierta.
+
+- Los datos se guardan en **tu propio Google Drive**, en una carpeta oculta que solo Fidelis puede ver. Fidelis no ve tus archivos, tu correo ni tu contraseña, y no hay ningún servidor de por medio.
+- Si un mismo dato cambia en dos sitios, gana el cambio más reciente. Los borrados también se sincronizan.
+- Los recordatorios y el pomodoro son propios de cada dispositivo.
+- Puedes quitarle el acceso cuando quieras en *Ajustes → Sincronización → Desconectar* o desde [tu cuenta de Google](https://myaccount.google.com/permissions).
+- La versión web del navegador no sincroniza.
+
 ## Privacidad
 
 - Todos tus datos se guardan **solo en tu dispositivo** (base de datos SQLite local; en la versión web, dentro del navegador).
-- No hay cuentas, ni publicidad, ni analíticas, ni se envía nada a ningún servidor.
+- No hay cuentas, ni publicidad, ni analíticas, ni se envía nada a ningún servidor. Si activas la sincronización, tus datos van solo a tu Google Drive.
+- [Política de privacidad completa](https://willydkx.github.io/fidelis/privacy.html).
 - Solo pide permiso de **notificaciones** (recordatorios y fin del pomodoro) y de **alarmas exactas**, para que el aviso del pomodoro llegue justo a su hora. En Android 14 o superior este último se activa en *Ajustes de la app → Alarmas y recordatorios*.
 
 Si desinstalas la app, se borran sus datos.
@@ -94,6 +106,13 @@ npm run install:desktop    # la instala para tu usuario, con acceso en el menú 
 ```
 
 Para desinstalarla: `powershell -File desktop/uninstall.ps1` (tus datos no se borran).
+
+### Sincronización en tu propia compilación
+
+La sincronización usa clientes OAuth de Google. El ID web de `src/config.ts` es público y solo funciona con el APK firmado por el autor; para compilar tu propia versión con sincronización, crea un proyecto en Google Cloud con la API de Drive y el permiso `drive.appdata`, y:
+
+- Pon el ID de tu cliente web en `GOOGLE_WEB_CLIENT_ID` (`src/config.ts`) y registra un cliente Android con tu paquete y la huella SHA-1 de tu firma.
+- Para Windows, crea un cliente «App de escritorio» y guarda `desktop/google-oauth.json` con `{ "client_id": "...", "client_secret": "..." }`. Ese archivo no se sube al repositorio.
 
 Para la versión web:
 

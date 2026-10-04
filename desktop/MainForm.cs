@@ -99,7 +99,8 @@ internal sealed class MainForm : Form
 
     private static CoreWebView2WebResourceResponse ServeAppFile(CoreWebView2Environment environment, Uri uri)
     {
-        var root = Path.GetFullPath(AppPaths.WebRoot);
+        // With the trailing separator, a sibling folder like "wwwroot2" can't pass the check below.
+        var root = Path.GetFullPath(AppPaths.WebRoot) + Path.DirectorySeparatorChar;
         var relative = Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/');
         var file = Path.GetFullPath(Path.Combine(root, relative));
         // App routes (/fidelis/, /fidelis/settings...) aren't files: answer them with the app's
@@ -126,6 +127,8 @@ internal sealed class MainForm : Form
 
     private void OnWebMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
+        // Only Fidelis's own pages may use the bridge (database, Google session...).
+        if (!e.Source.StartsWith($"https://{HostName}/", StringComparison.OrdinalIgnoreCase)) return;
         JsonNode? message;
         try
         {
@@ -147,20 +150,44 @@ internal sealed class MainForm : Form
 
         var id = message?["id"]?.GetValue<int>();
         if (id is null || type is null) return;
+        _ = AnswerAsync(id.Value, type, payload);
+    }
+
+    private async Task AnswerAsync(int id, string type, JsonNode? payload)
+    {
         try
         {
-            Reply(id.Value, true, HandleRequest(type, payload));
+            Reply(id, true, await HandleRequestAsync(type, payload));
         }
         catch (Exception error)
         {
-            Reply(id.Value, false, error: error.Message);
+            Reply(id, false, error: error.Message);
         }
     }
 
-    private JsonNode? HandleRequest(string type, JsonNode? payload)
+    private async Task<JsonNode?> HandleRequestAsync(string type, JsonNode? payload)
     {
         switch (type)
         {
+            case "google.signIn":
+                var email = await _app.Google.SignInAsync();
+                Restore();
+                return email;
+
+            case "google.account":
+                return _app.Google.Account;
+
+            case "google.token":
+                return await _app.Google.GetAccessTokenAsync();
+
+            case "google.discardToken":
+                _app.Google.DiscardAccessToken();
+                return null;
+
+            case "google.signOut":
+                await _app.Google.SignOutAsync();
+                return null;
+
             case "db.load":
                 return File.Exists(AppPaths.Database) ? Convert.ToBase64String(File.ReadAllBytes(AppPaths.Database)) : null;
 
@@ -207,6 +234,7 @@ internal sealed class MainForm : Form
 
     private void Reply(int id, bool ok, JsonNode? result = null, string? error = null)
     {
+        if (IsDisposed) return;
         var reply = new JsonObject { ["id"] = id, ["ok"] = ok, ["result"] = result, ["error"] = error };
         _web.CoreWebView2?.PostWebMessageAsJson(reply.ToJsonString());
     }

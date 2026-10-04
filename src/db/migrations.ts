@@ -80,6 +80,28 @@ CREATE INDEX idx_objectives_status ON objectives(status);
 PRAGMA foreign_keys = ON;
 `,
   ],
+  [
+    3,
+    `
+-- Sync between devices: a stable id for objectives, the time of each row's last change
+-- (milliseconds since 1970, 0 = before sync existed) and a record of deletions.
+ALTER TABLE objectives ADD COLUMN uid TEXT;
+ALTER TABLE objectives ADD COLUMN modified_at INTEGER NOT NULL DEFAULT 0;
+UPDATE objectives SET uid = lower(hex(randomblob(16)));
+CREATE UNIQUE INDEX idx_objectives_uid ON objectives(uid);
+
+ALTER TABLE daily_entries ADD COLUMN modified_at INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE app_settings ADD COLUMN modified_at INTEGER NOT NULL DEFAULT 0;
+
+-- kind 'objective': key = objective uid; kind 'entry': key = '<objective uid>|<entry date>'.
+CREATE TABLE sync_tombstones (
+    kind        TEXT    NOT NULL,
+    key         TEXT    NOT NULL,
+    deleted_at  INTEGER NOT NULL,
+    PRIMARY KEY (kind, key)
+);
+`,
+  ],
 ];
 
 export async function runMigrations(db: Db): Promise<void> {

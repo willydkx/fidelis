@@ -27,7 +27,8 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {
       if (request.mode === 'navigate') {
-        return (await cache.match('./')) ?? fetch(request);
+        // Real pages (e.g. privacy.html) as themselves; app routes get the app.
+        return (await cache.match(request, { ignoreSearch: true })) ?? (await cache.match('./')) ?? fetch(request);
       }
       return (await cache.match(request, { ignoreSearch: true })) ?? fetch(request);
     }),

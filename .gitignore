@@ -49,3 +49,6 @@ example
 desktop/bin/
 desktop/obj/
 desktop/dist/
+
+# Google OAuth client for the desktop app (see README)
+desktop/google-oauth.json
