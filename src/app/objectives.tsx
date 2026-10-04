@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useData, useDataQuery } from '@/data/DataProvider';
 import { ObjectiveStatus } from '@/models/enums';
 import { Objective } from '@/models/objective';
 import { Caption, EmptyState, Icon, IconButton, SectionHeader } from '@/ui/components';
+import { confirmAction } from '@/ui/confirm';
 import { cadenceText, objectiveColor, targetText } from '@/ui/labels';
 import { ObjectiveForm } from '@/ui/ObjectiveForm';
 import { Screen } from '@/ui/Screen';
@@ -29,21 +30,15 @@ export default function ObjectivesScreen() {
   };
 
   const confirmArchive = (objective: Objective) =>
-    Alert.alert(
-      'Archivar objetivo',
-      `¿Archivar "${objective.name}"? Dejará de aparecer en el registro diario, pero conserva su historial.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Archivar',
-          style: 'destructive',
-          onPress: async () => {
-            await repo.archive(objective.id);
-            notifyChanged();
-          },
-        },
-      ],
-    );
+    confirmAction({
+      title: 'Archivar objetivo',
+      message: `¿Archivar "${objective.name}"? Dejará de aparecer en el registro diario, pero conserva su historial.`,
+      confirmLabel: 'Archivar',
+      onConfirm: async () => {
+        await repo.archive(objective.id);
+        notifyChanged();
+      },
+    });
 
   const setStatus = async (objective: Objective, status: ObjectiveStatus.ACTIVE | ObjectiveStatus.PAUSED) => {
     await repo.setStatus(objective.id, status);

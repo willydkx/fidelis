@@ -10,7 +10,10 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 SIZE = 1024
-ASSETS = Path(__file__).resolve().parents[1] / "assets" / "images"
+ROOT = Path(__file__).resolve().parents[1]
+ASSETS = ROOT / "assets" / "images"
+# Copied as-is to the root of the web build (PWA manifest icons).
+PUBLIC = ROOT / "public"
 
 GRADIENT_TOP = (29, 94, 173)
 GRADIENT_BOTTOM = (64, 150, 235)
@@ -93,6 +96,20 @@ def main() -> None:
     for name, image in outputs.items():
         image.save(ASSETS / name, format="PNG")
         print(f"wrote {ASSETS / name}")
+
+    full_bleed = Image.alpha_composite(background, draw_emblem(SIZE))
+    web_outputs = {
+        "icon-192.png": rounded(full_bleed).resize((192, 192), Image.LANCZOS),
+        "icon-512.png": rounded(full_bleed).resize((512, 512), Image.LANCZOS),
+        # Maskable icons may be cropped to a circle of 80% of the canvas, like adaptive icons.
+        "icon-maskable-512.png": Image.alpha_composite(background, draw_emblem(SIZE, ADAPTIVE_SCALE)).resize((512, 512), Image.LANCZOS),
+        # iOS rounds the corners itself and shows transparency as black.
+        "apple-touch-icon.png": full_bleed.convert("RGB").resize((180, 180), Image.LANCZOS),
+    }
+    PUBLIC.mkdir(exist_ok=True)
+    for name, image in web_outputs.items():
+        image.save(PUBLIC / name, format="PNG")
+        print(f"wrote {PUBLIC / name}")
 
 
 if __name__ == "__main__":

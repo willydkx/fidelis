@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { DailyEntry } from '@/models/entry';
 import { TrackingType } from '@/models/enums';
@@ -138,5 +138,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     paddingVertical: 4,
     fontVariant: ['tabular-nums'],
+    // A web <input> is ~20 characters wide by default and would squeeze the name column.
+    ...Platform.select({ web: { width: 64 } }),
   },
 });

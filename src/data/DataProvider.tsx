@@ -1,8 +1,7 @@
-import { SQLiteDatabase, SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { DATABASE_NAME } from '@/config';
-import { runMigrations } from '@/db/migrations';
+import { DatabaseProvider, useDb } from '@/data/database';
+import { Db } from '@/db/types';
 import { ensureNotificationPermission, rescheduleReminders } from '@/notifications/reminders';
 import { EntriesRepository } from '@/repositories/entriesRepository';
 import { ObjectivesRepository } from '@/repositories/objectivesRepository';
@@ -11,7 +10,7 @@ import { AggregationService } from '@/services/aggregationService';
 import { USER_NAME_KEY } from '@/utils/personalization';
 
 export interface DataContextValue {
-  db: SQLiteDatabase;
+  db: Db;
   objectives: ObjectivesRepository;
   entries: EntriesRepository;
   settings: SettingsRepository;
@@ -24,7 +23,7 @@ export interface DataContextValue {
 const DataContext = createContext<DataContextValue | null>(null);
 
 function DataContextProvider({ children }: { children: ReactNode }) {
-  const db = useSQLiteContext();
+  const db = useDb();
   const [version, setVersion] = useState(0);
 
   const repos = useMemo(() => {
@@ -60,9 +59,9 @@ function DataContextProvider({ children }: { children: ReactNode }) {
 
 export function DataProvider({ children }: { children: ReactNode }) {
   return (
-    <SQLiteProvider databaseName={DATABASE_NAME} onInit={runMigrations}>
+    <DatabaseProvider>
       <DataContextProvider>{children}</DataContextProvider>
-    </SQLiteProvider>
+    </DatabaseProvider>
   );
 }
 

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Vibration } from 'react-native';
+import { AppState, Platform, Vibration } from 'react-native';
 
 import { useData } from '@/data/DataProvider';
 import { ObjectiveStatus, TrackingType } from '@/models/enums';
 import { remindersSupported, schedulePomodoroNotification } from '@/notifications/reminders';
+import { prepareAlarm, ringAlarm } from '@/pomodoro/phaseAlarm';
 import {
   addToStats,
   advance,
@@ -119,8 +120,15 @@ export function usePomodoro() {
         const effectiveConfig = late ? { ...config, autoStart: false } : config;
         const { state: next, finishedWork } = advance(state, effectiveConfig, Date.now(), completed);
 
-        // With notifications available, the phase-end notification vibrates/rings on its own.
-        if (completed && !late && !remindersSupported) Vibration.vibrate([0, 400, 200, 400]);
+        if (completed && !late) {
+          if (Platform.OS === 'web') {
+            const body = phaseEndMessage(state.phase, next.phase, config);
+            ringAlarm(fillName(body, await settings.get(USER_NAME_KEY)), config.alarmSound);
+          } else if (!remindersSupported) {
+            // With notifications available, the phase-end notification vibrates/rings on its own.
+            Vibration.vibrate([0, 400, 200, 400]);
+          }
+        }
         if (finishedWork) {
           const minutes = phaseMinutes('work', config);
           const updated = addToStats(stats, today(), minutes);
@@ -164,10 +172,11 @@ export function usePomodoro() {
     state,
     stats: todayStats,
     remaining: state ? remainingMs(state, now) : 0,
-    toggle: () =>
-      state &&
-      config &&
-      commit(state.status === 'running' ? pause(state, Date.now()) : start(state, Date.now()), config),
+    toggle: () => {
+      if (!state || !config) return;
+      if (state.status !== 'running') prepareAlarm();
+      commit(state.status === 'running' ? pause(state, Date.now()) : start(state, Date.now()), config);
+    },
     resetPhase: () => state && config && commit(resetPhase(state, config), config),
     resetCycle: () => config && commit(resetCycle(config), config),
     skip: () => finishPhase(false),

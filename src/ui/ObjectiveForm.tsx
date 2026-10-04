@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Cadence, TrackingType } from '@/models/enums';
 import { NewObjective, Objective } from '@/models/objective';
 import { Button, Caption, Icon, IconButton, Segmented, Title } from '@/ui/components';
+import { confirmAction } from '@/ui/confirm';
 import { WEEKDAY_ABBR } from '@/ui/labels';
 import { CATEGORICAL, colors, radius, space } from '@/ui/theme';
 
@@ -93,16 +94,14 @@ function FormBody({
   };
 
   const confirmDelete = () =>
-    Alert.alert(
-      'Eliminar objetivo',
-      `¿Eliminar "${objective?.name}" y todo su historial? No se puede deshacer.
+    confirmAction({
+      title: 'Eliminar objetivo',
+      message: `¿Eliminar "${objective?.name}" y todo su historial? No se puede deshacer.
 
 Si solo quieres dejar de verlo, mejor archívalo: conserva sus registros y estadísticas.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: onDelete },
-      ],
-    );
+      confirmLabel: 'Eliminar',
+      onConfirm: onDelete,
+    });
 
   const toggleDay = (day: number) => {
     const days = values.daysOfWeek ?? [];

@@ -15,7 +15,8 @@ export function Icon({
   size?: number;
   color?: string;
 }) {
-  return <SymbolView name={{ android, ios }} size={size} tintColor={color} />;
+  // The web build draws the same Material Symbols as Android.
+  return <SymbolView name={{ android, ios, web: android }} size={size} tintColor={color} />;
 }
 
 export function Card({ style, ...props }: ViewProps) {

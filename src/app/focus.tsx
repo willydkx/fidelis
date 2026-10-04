@@ -227,9 +227,11 @@ export default function FocusScreen() {
               <View style={{ flex: 1, gap: 2 }}>
                 <Body>Alarma con sonido</Body>
                 <Caption>
-                  {config.alarmSound
-                    ? 'Suena con el volumen de alarma, así que normalmente se oye aunque el móvil esté en silencio.'
-                    : 'Al terminar, el aviso solo vibra.'}
+                  {Platform.OS === 'web'
+                    ? 'En la versión web el aviso suena solo si Fidelis sigue abierta.'
+                    : config.alarmSound
+                      ? 'Suena con el volumen de alarma, así que normalmente se oye aunque el móvil esté en silencio.'
+                      : 'Al terminar, el aviso solo vibra.'}
                 </Caption>
               </View>
               <Switch

@@ -110,7 +110,9 @@ function Welcome({ askForObjectives }: { askForObjectives: boolean }) {
             <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
             <Text style={styles.title}>Bienvenido a Fidelis</Text>
             <Caption style={styles.subtitle}>
-              Registra tus objetivos cada día, mira tus rachas y recibe recordatorios para no romperlas.
+              {Platform.OS === 'web'
+                ? 'Registra tus objetivos cada día y mira tus rachas crecer.'
+                : 'Registra tus objetivos cada día, mira tus rachas y recibe recordatorios para no romperlas.'}
             </Caption>
             <View style={styles.form}>
               <Text style={styles.question}>¿Cómo te llamas?</Text>
@@ -127,7 +129,10 @@ function Welcome({ askForObjectives }: { askForObjectives: boolean }) {
                 returnKeyType="next"
                 style={styles.input}
               />
-              <Caption>Lo usaremos para saludarte y en los recordatorios. Puedes cambiarlo en Ajustes.</Caption>
+              <Caption>
+                {Platform.OS === 'web' ? 'Lo usaremos para saludarte.' : 'Lo usaremos para saludarte y en los recordatorios.'}{' '}
+                Puedes cambiarlo en Ajustes.
+              </Caption>
               <Button label="Continuar" variant="primary" onPress={() => afterName(name)} disabled={!name.trim()} />
               <Pressable onPress={() => afterName('')} style={styles.skip} hitSlop={8}>
                 <Text style={styles.skipText}>Ahora no</Text>

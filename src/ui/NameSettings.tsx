@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput } from 'react-native';
+import { Platform, StyleSheet, TextInput } from 'react-native';
 
 import { useData, useDataQuery } from '@/data/DataProvider';
 import { Caption, Card, Title } from '@/ui/components';
@@ -35,7 +35,9 @@ export function NameSettings() {
         returnKeyType="done"
         style={styles.input}
       />
-      <Caption>Se usa en el saludo de la pantalla Hoy y en los recordatorios.</Caption>
+      <Caption>
+        Se usa en el saludo de la pantalla Hoy{Platform.OS === 'web' ? '.' : ' y en los recordatorios.'}
+      </Caption>
     </Card>
   );
 }

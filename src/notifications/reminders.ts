@@ -31,9 +31,10 @@ const DAYS_AHEAD = 14;
 /**
  * In Expo Go on Android, merely importing expo-notifications throws (it auto-registers for
  * push, which Expo Go no longer supports), so the module is loaded lazily and reminders are
- * simply unavailable there. Development and release builds get the real module.
+ * simply unavailable there. Development and release builds get the real module. The web
+ * version has no scheduled notifications either.
  */
-export const remindersSupported = !(Platform.OS === 'android' && isRunningInExpoGo());
+export const remindersSupported = Platform.OS !== 'web' && !(Platform.OS === 'android' && isRunningInExpoGo());
 
 let notificationsModule: typeof NotificationsModule | null = null;
 

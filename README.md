@@ -4,10 +4,12 @@
 
 <h1 align="center">Fidelis</h1>
 
-<p align="center">App Android para cumplir tus objetivos diarios, semanales y mensuales, y no romper la racha.</p>
+<p align="center">App para cumplir tus objetivos diarios, semanales y mensuales, y no romper la racha.</p>
 
 <p align="center">
-  <a href="../../releases/latest"><b>⬇️ Descargar el APK</b></a>
+  <a href="../../releases/latest"><b>⬇️ Descargar el APK (Android)</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://willydkx.github.io/fidelis-android/"><b>🌐 Abrir la versión web</b></a>
 </p>
 
 ---
@@ -33,9 +35,23 @@ Las versiones nuevas se instalan encima de la anterior sin perder datos.
 
 Requiere Android 7.0 o superior.
 
+## Versión web (iPhone, PC y cualquier navegador)
+
+Abre **https://willydkx.github.io/fidelis-android/** e instálala como una app:
+
+- **iPhone o iPad (Safari):** botón *Compartir* → **Añadir a pantalla de inicio**.
+- **Android (Chrome):** menú ⋮ → **Instalar aplicación** (o *Añadir a pantalla de inicio*).
+- **PC (Chrome o Edge):** icono de instalar en la barra de direcciones.
+
+Una vez abierta, funciona también sin conexión. Diferencias con el APK:
+
+- No hay **recordatorios**: el navegador no permite programar notificaciones.
+- La alarma del **pomodoro** solo suena si Fidelis sigue abierta.
+- Los datos se guardan **en ese navegador** y no se comparten con el APK ni con otros dispositivos. Si borras los datos del sitio, se pierden. En iPhone, instálala en la pantalla de inicio: Safari puede borrar los datos de webs que no se visitan en unas semanas, pero no los de las apps instaladas.
+
 ## Privacidad
 
-- Todos tus datos se guardan **solo en tu móvil** (base de datos SQLite local).
+- Todos tus datos se guardan **solo en tu dispositivo** (base de datos SQLite local; en la versión web, dentro del navegador).
 - No hay cuentas, ni publicidad, ni analíticas, ni se envía nada a ningún servidor.
 - Solo pide permiso de **notificaciones** (recordatorios y fin del pomodoro) y de **alarmas exactas**, para que el aviso del pomodoro llegue justo a su hora. En Android 14 o superior este último se activa en *Ajustes de la app → Alarmas y recordatorios*.
 
@@ -59,6 +75,14 @@ npx eas-cli@latest build --profile preview --platform android
 ```
 
 Para desarrollar con recarga en caliente, instala un development build (`--profile development`) y ejecuta `npx expo start`.
+
+Para la versión web:
+
+```bash
+npm run build:web    # genera la PWA en dist/
+```
+
+Se publica en GitHub Pages subiendo el contenido de `dist/` a la rama `gh-pages`. Si usas otro repositorio, cambia `experiments.baseUrl` en `app.json` por `/<nombre-del-repo>`.
 
 ## Créditos
 

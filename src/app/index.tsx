@@ -10,6 +10,7 @@ import { ObjectiveEntryRow } from '@/ui/ObjectiveEntryRow';
 import { Screen } from '@/ui/Screen';
 import { colors, radius, space } from '@/ui/theme';
 import { useNow } from '@/ui/useNow';
+import { WebDateInput } from '@/ui/WebDateInput';
 import { addDays, formatLong, ISODate, makeDate } from '@/utils/dateUtils';
 import { greeting, USER_NAME_KEY } from '@/utils/personalization';
 
@@ -34,7 +35,7 @@ export default function TodayScreen() {
   const day = pickedDay ?? currentDay;
   const isToday = day === currentDay;
   const setDay = (next: ISODate) => setPickedDay(next === currentDay ? null : next);
-  const [iosPickerOpen, setIosPickerOpen] = useState(false);
+  const [inlinePickerOpen, setInlinePickerOpen] = useState(false);
 
   const userName = useDataQuery(async ({ settings }) => settings.get(USER_NAME_KEY));
 
@@ -61,7 +62,7 @@ export default function TodayScreen() {
         onChange: (event, selected) => event.type === 'set' && pickDate(selected),
       });
     } else {
-      setIosPickerOpen((open) => !open);
+      setInlinePickerOpen((open) => !open);
     }
   };
 
@@ -88,9 +89,12 @@ export default function TodayScreen() {
           <Text style={{ color: colors.accent, fontWeight: '600' }}>Volver a hoy</Text>
         </Pressable>
       )}
-      {iosPickerOpen && (
-        <DateTimePicker value={toJsDate(day)} mode="date" display="inline" maximumDate={new Date()} onChange={(_, d) => pickDate(d)} />
-      )}
+      {inlinePickerOpen &&
+        (Platform.OS === 'web' ? (
+          <WebDateInput value={day} max={currentDay} onChange={setDay} />
+        ) : (
+          <DateTimePicker value={toJsDate(day)} mode="date" display="inline" maximumDate={new Date()} onChange={(_, d) => pickDate(d)} />
+        ))}
 
       {data && data.applicable.length === 0 && (
         <EmptyState android="event_available" ios="calendar.badge.checkmark" text="No tienes objetivos activos para este día." />
