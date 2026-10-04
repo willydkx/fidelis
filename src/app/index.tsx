@@ -9,6 +9,7 @@ import { Body, Card, Caption, EmptyState, Icon, IconButton, SectionHeader } from
 import { ObjectiveEntryRow } from '@/ui/ObjectiveEntryRow';
 import { Screen } from '@/ui/Screen';
 import { colors, radius, space } from '@/ui/theme';
+import { useKeyboardShortcuts } from '@/ui/useKeyboardShortcuts';
 import { useNow } from '@/ui/useNow';
 import { WebDateInput } from '@/ui/WebDateInput';
 import { addDays, formatLong, ISODate, makeDate } from '@/utils/dateUtils';
@@ -36,6 +37,11 @@ export default function TodayScreen() {
   const isToday = day === currentDay;
   const setDay = (next: ISODate) => setPickedDay(next === currentDay ? null : next);
   const [inlinePickerOpen, setInlinePickerOpen] = useState(false);
+  useKeyboardShortcuts({
+    ArrowLeft: () => setDay(addDays(day, -1)),
+    ArrowRight: () => !isToday && setDay(addDays(day, 1)),
+    h: () => setPickedDay(null),
+  });
 
   const userName = useDataQuery(async ({ settings }) => settings.get(USER_NAME_KEY));
 

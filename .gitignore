@@ -44,3 +44,8 @@ example
 
 # Local tooling
 .claude/
+
+# desktop app build output
+desktop/bin/
+desktop/obj/
+desktop/dist/

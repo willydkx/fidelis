@@ -4,7 +4,7 @@
 
 <h1 align="center">Fidelis</h1>
 
-<p align="center">App para cumplir tus objetivos diarios, semanales y mensuales, y no romper la racha.</p>
+<p align="center">App para cumplir tus objetivos diarios, semanales y mensuales, y no romper la racha. Para Android, navegador y Windows.</p>
 
 <p align="center">
   <a href="../../releases/latest"><b>⬇️ Descargar el APK (Android)</b></a>
@@ -49,6 +49,16 @@ Una vez abierta, funciona también sin conexión. Diferencias con el APK:
 - La alarma del **pomodoro** solo suena si Fidelis sigue abierta.
 - Los datos se guardan **en ese navegador** y no se comparten con el APK ni con otros dispositivos. Si borras los datos del sitio, se pierden. En iPhone, instálala en la pantalla de inicio: Safari puede borrar los datos de webs que no se visitan en unas semanas, pero no los de las apps instaladas.
 
+## Versión de escritorio (Windows)
+
+La misma app en una ventana para el PC, con menú lateral, Dashboard en columnas y atajos de teclado (← y → cambian de día, H vuelve a hoy, Espacio inicia o pausa el pomodoro y N crea un objetivo).
+
+- **Se abre al encender el ordenador** (se puede desactivar en *Ajustes → Escritorio*).
+- **Al cerrar la ventana se queda junto al reloj** para avisarte de los recordatorios y del fin del pomodoro. La parte pesada (el motor web) se cierra del todo, así que en la bandeja apenas gasta memoria y nada de CPU. Para salir del todo: clic derecho en el icono → *Salir*.
+- Tus datos se guardan en `%LOCALAPPDATA%\Fidelis\fidelis.db`, un archivo SQLite normal (con una copia `.bak` del guardado anterior).
+
+Requiere Windows 10 u 11 con el [runtime de escritorio de .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0) y WebView2 (ya incluido en Windows 11). Por ahora se instala compilándola (ver más abajo).
+
 ## Privacidad
 
 - Todos tus datos se guardan **solo en tu dispositivo** (base de datos SQLite local; en la versión web, dentro del navegador).
@@ -75,6 +85,15 @@ npx eas-cli@latest build --profile preview --platform android
 ```
 
 Para desarrollar con recarga en caliente, instala un development build (`--profile development`) y ejecuta `npx expo start`.
+
+Para la versión de escritorio (necesita además el [SDK de .NET 8](https://dotnet.microsoft.com/download/dotnet/8.0)):
+
+```bash
+npm run build:desktop      # genera desktop/dist/Fidelis
+npm run install:desktop    # la instala para tu usuario, con acceso en el menú Inicio y arranque con Windows
+```
+
+Para desinstalarla: `powershell -File desktop/uninstall.ps1` (tus datos no se borran).
 
 Para la versión web:
 

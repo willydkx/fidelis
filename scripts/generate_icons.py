@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets" / "images"
 # Copied as-is to the root of the web build (PWA manifest icons).
 PUBLIC = ROOT / "public"
+DESKTOP = ROOT / "desktop"
 
 GRADIENT_TOP = (29, 94, 173)
 GRADIENT_BOTTOM = (64, 150, 235)
@@ -110,6 +111,11 @@ def main() -> None:
     for name, image in web_outputs.items():
         image.save(PUBLIC / name, format="PNG")
         print(f"wrote {PUBLIC / name}")
+
+    # Windows app and tray icon.
+    sizes = [(16, 16), (20, 20), (24, 24), (32, 32), (40, 40), (48, 48), (64, 64), (128, 128), (256, 256)]
+    rounded(full_bleed).save(DESKTOP / "Fidelis.ico", format="ICO", sizes=sizes)
+    print(f"wrote {DESKTOP / 'Fidelis.ico'}")
 
 
 if __name__ == "__main__":

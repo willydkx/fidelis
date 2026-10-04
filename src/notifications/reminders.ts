@@ -12,6 +12,7 @@ import {
   ReminderConfig,
   reminderMessage,
 } from '@/notifications/reminderConfig';
+import { isDesktop, scheduleDesktopNotifications } from '@/platform/desktop';
 import { ObjectivesRepository } from '@/repositories/objectivesRepository';
 import { SettingsRepository } from '@/repositories/settingsRepository';
 import { AggregationService } from '@/services/aggregationService';
@@ -31,15 +32,16 @@ const DAYS_AHEAD = 14;
 /**
  * In Expo Go on Android, merely importing expo-notifications throws (it auto-registers for
  * push, which Expo Go no longer supports), so the module is loaded lazily and reminders are
- * simply unavailable there. Development and release builds get the real module. The web
- * version has no scheduled notifications either.
+ * simply unavailable there. Development and release builds get the real module. In the
+ * browser there are no scheduled notifications; the desktop app shows them itself.
  */
-export const remindersSupported = Platform.OS !== 'web' && !(Platform.OS === 'android' && isRunningInExpoGo());
+export const remindersSupported =
+  isDesktop || (Platform.OS !== 'web' && !(Platform.OS === 'android' && isRunningInExpoGo()));
 
 let notificationsModule: typeof NotificationsModule | null = null;
 
 function loadNotifications(): typeof NotificationsModule | null {
-  if (!remindersSupported) {
+  if (!remindersSupported || isDesktop) {
     return null;
   }
   if (!notificationsModule) {
@@ -58,6 +60,8 @@ function loadNotifications(): typeof NotificationsModule | null {
 }
 
 export async function ensureNotificationPermission(ask: boolean): Promise<boolean> {
+  // The desktop app shows tray notifications, which need no permission.
+  if (isDesktop) return true;
   const Notifications = loadNotifications();
   if (!Notifications) {
     return false;
@@ -114,13 +118,13 @@ export async function rescheduleReminders({
   aggregation: AggregationService;
 }): Promise<void> {
   const Notifications = loadNotifications();
-  if (!Notifications || !(await ensureNotificationPermission(false))) {
+  if (!isDesktop && (!Notifications || !(await ensureNotificationPermission(false)))) {
     return;
   }
   // Clear previous reminders but leave the running pomodoro's notification alone.
-  for (const scheduled of await Notifications.getAllScheduledNotificationsAsync()) {
+  for (const scheduled of Notifications ? await Notifications.getAllScheduledNotificationsAsync() : []) {
     if (scheduled.identifier !== POMODORO_NOTIFICATION_ID) {
-      await Notifications.cancelScheduledNotificationAsync(scheduled.identifier);
+      await Notifications!.cancelScheduledNotificationAsync(scheduled.identifier);
     }
   }
 
@@ -136,6 +140,13 @@ export async function rescheduleReminders({
   });
   const body = reminderMessage(config, await settings.get(USER_NAME_KEY));
 
+  if (!Notifications) {
+    await scheduleDesktopNotifications(
+      'reminders',
+      moments.map((date) => ({ at: date.getTime(), title: 'Fidelis', body })),
+    );
+    return;
+  }
   for (const date of moments) {
     await Notifications.scheduleNotificationAsync({
       content: { title: 'Fidelis', body },
@@ -146,6 +157,14 @@ export async function rescheduleReminders({
 
 /** Replaces the pomodoro "phase finished" notification; `at: null` just cancels it. */
 export async function schedulePomodoroNotification(at: Date | null, body: string, alarmSound = true): Promise<void> {
+  if (isDesktop) {
+    const upcoming = at && at.getTime() > Date.now();
+    await scheduleDesktopNotifications(
+      'pomodoro',
+      upcoming ? [{ at: at.getTime(), title: 'Fidelis · Enfoque', body, sound: alarmSound }] : [],
+    );
+    return;
+  }
   const Notifications = loadNotifications();
   if (!Notifications || !(await ensureNotificationPermission(false))) {
     return;

@@ -11,6 +11,7 @@ import { Body, Caption, Card, Icon, IconButton, Title } from '@/ui/components';
 import { formatNumber, objectiveColor } from '@/ui/labels';
 import { Screen } from '@/ui/Screen';
 import { CATEGORICAL, colors, radius, space, tint } from '@/ui/theme';
+import { useKeyboardShortcuts } from '@/ui/useKeyboardShortcuts';
 
 const PHASE_COLORS: Record<Phase, string> = {
   work: colors.accent,
@@ -23,6 +24,7 @@ const RING_STROKE = 14;
 
 export default function FocusScreen() {
   const pomodoro = usePomodoro();
+  useKeyboardShortcuts({ ' ': pomodoro.toggle });
   const [customizing, setCustomizing] = useState(false);
 
   // Numeric objectives measured in minutes can receive the focus time.

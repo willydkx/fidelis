@@ -17,24 +17,16 @@ const HEAD_TAGS = `
     <meta name="description" content="Objetivos diarios, semanales y mensuales con rachas y estadísticas." />
     <link rel="apple-touch-icon" href="${BASE}apple-touch-icon.png" />
     <style>
+      html { color-scheme: dark; }
       html, body { background: #0d0d0d; }
-      /* Phone-width column on desktop screens. */
-      #root { width: 100%; max-width: 720px; margin: 0 auto; }
-      /* Expo Router draws the web tabs as a pill at the top, over the screen titles; put it
-         at the bottom like on Android and keep the content clear of it. */
-      [class*="navigationMenuRoot"] { top: auto; bottom: calc(12px + env(safe-area-inset-bottom)); max-width: 96vw; }
-      [class*="tabContent"] { box-sizing: border-box; min-height: 0; padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
-      @media (max-width: 440px) {
-        :root { --expo-router-tabs-font-size: 13px; }
-        [class*="navigationMenuTrigger"] { padding: 0 9px; }
-      }
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="Fidelis" />
     <script>
-      if ('serviceWorker' in navigator) {
+      // The desktop app serves these files itself and needs no service worker.
+      if ('serviceWorker' in navigator && !window.chrome?.webview) {
         addEventListener('load', () => navigator.serviceWorker.register('${BASE}sw.js').catch(console.warn));
       }
     </script>

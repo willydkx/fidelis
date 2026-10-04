@@ -10,11 +10,13 @@ import { cadenceText, objectiveColor, targetText } from '@/ui/labels';
 import { ObjectiveForm } from '@/ui/ObjectiveForm';
 import { Screen } from '@/ui/Screen';
 import { colors, radius, space } from '@/ui/theme';
+import { useKeyboardShortcuts } from '@/ui/useKeyboardShortcuts';
 
 export default function ObjectivesScreen() {
   const { objectives: repo, notifyChanged } = useData();
   const [editing, setEditing] = useState<Objective | 'new' | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  useKeyboardShortcuts({ n: () => editing === null && setEditing('new') });
 
   const all = useDataQuery(({ objectives }) => objectives.list());
   const active = all?.filter((o) => o.status === ObjectiveStatus.ACTIVE) ?? [];

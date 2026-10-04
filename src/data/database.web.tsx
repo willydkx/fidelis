@@ -5,11 +5,13 @@ import { DATABASE_NAME } from '@/config';
 import { runMigrations } from '@/db/migrations';
 import { wrapSqlJs } from '@/db/sqlJsDb';
 import { Db } from '@/db/types';
+import { callHost, isDesktop, onHostEvent } from '@/platform/desktop';
 
 /*
  * On the web the database is SQLite compiled to WebAssembly (sql.js), kept in memory and
- * saved to IndexedDB after every write. expo-sqlite's web build needs cross-origin isolation
- * headers, which static hosts such as GitHub Pages can't send.
+ * saved after every write: to IndexedDB in the browser, or to a real .db file through the
+ * desktop app. expo-sqlite's web build needs cross-origin isolation headers, which static
+ * hosts such as GitHub Pages can't send.
  */
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- Metro turns the .wasm into an asset URL
@@ -37,14 +39,43 @@ async function openStore(mode: IDBTransactionMode): Promise<IDBObjectStore> {
   return (await connection).transaction(IDB_STORE, mode).objectStore(IDB_STORE);
 }
 
-async function loadBytes(): Promise<Uint8Array | null> {
-  const stored = await idbRequest((await openStore('readonly')).get(DATABASE_NAME));
-  return stored instanceof Uint8Array ? stored : null;
+interface Storage {
+  load(): Promise<Uint8Array | null>;
+  save(bytes: Uint8Array): Promise<void>;
 }
 
-async function saveBytes(bytes: Uint8Array): Promise<void> {
-  await idbRequest((await openStore('readwrite')).put(bytes, DATABASE_NAME));
+const browserStorage: Storage = {
+  async load() {
+    const stored = await idbRequest((await openStore('readonly')).get(DATABASE_NAME));
+    return stored instanceof Uint8Array ? stored : null;
+  },
+  async save(bytes) {
+    await idbRequest((await openStore('readwrite')).put(bytes, DATABASE_NAME));
+  },
+};
+
+function toBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binary);
 }
+
+function fromBase64(base64: string): Uint8Array {
+  return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+}
+
+/** The desktop app keeps the database as a regular SQLite file in the user's AppData. */
+const desktopStorage: Storage = {
+  async load() {
+    const base64 = await callHost<string | null>('db.load');
+    return base64 ? fromBase64(base64) : null;
+  },
+  async save(bytes) {
+    await callHost('db.save', toBase64(bytes));
+  },
+};
+
+const storage = isDesktop ? desktopStorage : browserStorage;
 
 function wasmUrl(): string {
   return typeof wasmAsset === 'string' ? wasmAsset : wasmAsset.uri ?? wasmAsset.default;
@@ -63,7 +94,7 @@ function createDb(raw: Database): Db {
     const bytes = raw.export();
     // export() resets connection pragmas.
     raw.exec('PRAGMA foreign_keys = ON');
-    saving = saving.then(() => saveBytes(bytes)).catch((error) => console.warn('[Fidelis] save failed', error));
+    saving = saving.then(() => storage.save(bytes)).catch((error) => console.warn('[Fidelis] save failed', error));
   };
   const scheduleSave = () => {
     pending = true;
@@ -73,13 +104,18 @@ function createDb(raw: Database): Db {
   // Don't lose the last change if the tab is closed or the app is sent to the background.
   window.addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush());
+  // The desktop app frees the page when its window is closed to the tray; save first.
+  onHostEvent('hide', () => {
+    flush();
+    return saving;
+  });
 
   return wrapSqlJs(raw, scheduleSave);
 }
 
 async function openDatabase(): Promise<Db> {
   const SQL = await initSqlJs({ locateFile: () => wasmUrl() });
-  const db = createDb(new SQL.Database((await loadBytes()) ?? undefined));
+  const db = createDb(new SQL.Database((await storage.load()) ?? undefined));
   await runMigrations(db);
   // Ask the browser not to evict the data under storage pressure (best effort).
   navigator.storage?.persist?.().catch(() => {});

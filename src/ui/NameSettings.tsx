@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Platform, StyleSheet, TextInput } from 'react-native';
+import { StyleSheet, TextInput } from 'react-native';
 
+import { remindersSupported } from '@/notifications/reminders';
 import { useData, useDataQuery } from '@/data/DataProvider';
 import { Caption, Card, Title } from '@/ui/components';
 import { colors, radius, space } from '@/ui/theme';
@@ -36,7 +37,7 @@ export function NameSettings() {
         style={styles.input}
       />
       <Caption>
-        Se usa en el saludo de la pantalla Hoy{Platform.OS === 'web' ? '.' : ' y en los recordatorios.'}
+        Se usa en el saludo de la pantalla Hoy{!remindersSupported ? '.' : ' y en los recordatorios.'}
       </Caption>
     </Card>
   );

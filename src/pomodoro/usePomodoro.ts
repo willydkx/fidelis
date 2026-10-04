@@ -4,6 +4,7 @@ import { AppState, Platform, Vibration } from 'react-native';
 import { useData } from '@/data/DataProvider';
 import { ObjectiveStatus, TrackingType } from '@/models/enums';
 import { remindersSupported, schedulePomodoroNotification } from '@/notifications/reminders';
+import { isDesktop } from '@/platform/desktop';
 import { prepareAlarm, ringAlarm } from '@/pomodoro/phaseAlarm';
 import {
   addToStats,
@@ -121,7 +122,8 @@ export function usePomodoro() {
         const { state: next, finishedWork } = advance(state, effectiveConfig, Date.now(), completed);
 
         if (completed && !late) {
-          if (Platform.OS === 'web') {
+          // The desktop app rings through its scheduled notification, like Android.
+          if (Platform.OS === 'web' && !isDesktop) {
             const body = phaseEndMessage(state.phase, next.phase, config);
             ringAlarm(fillName(body, await settings.get(USER_NAME_KEY)), config.alarmSound);
           } else if (!remindersSupported) {
@@ -174,7 +176,7 @@ export function usePomodoro() {
     remaining: state ? remainingMs(state, now) : 0,
     toggle: () => {
       if (!state || !config) return;
-      if (state.status !== 'running') prepareAlarm();
+      if (state.status !== 'running' && !isDesktop) prepareAlarm();
       commit(state.status === 'running' ? pause(state, Date.now()) : start(state, Date.now()), config);
     },
     resetPhase: () => state && config && commit(resetPhase(state, config), config),

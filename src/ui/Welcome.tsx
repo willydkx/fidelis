@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useData, useDataQuery } from '@/data/DataProvider';
 import { NewObjective } from '@/models/objective';
-import { ensureNotificationPermission } from '@/notifications/reminders';
+import { ensureNotificationPermission, remindersSupported } from '@/notifications/reminders';
 import { AreaId, AREAS, Level, suggestObjectives } from '@/onboarding/catalog';
 import { Button, Caption, Icon, IconButton } from '@/ui/components';
 import { cadenceText, targetText } from '@/ui/labels';
@@ -110,7 +110,7 @@ function Welcome({ askForObjectives }: { askForObjectives: boolean }) {
             <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
             <Text style={styles.title}>Bienvenido a Fidelis</Text>
             <Caption style={styles.subtitle}>
-              {Platform.OS === 'web'
+              {!remindersSupported
                 ? 'Registra tus objetivos cada día y mira tus rachas crecer.'
                 : 'Registra tus objetivos cada día, mira tus rachas y recibe recordatorios para no romperlas.'}
             </Caption>
@@ -130,7 +130,7 @@ function Welcome({ askForObjectives }: { askForObjectives: boolean }) {
                 style={styles.input}
               />
               <Caption>
-                {Platform.OS === 'web' ? 'Lo usaremos para saludarte.' : 'Lo usaremos para saludarte y en los recordatorios.'}{' '}
+                {!remindersSupported ? 'Lo usaremos para saludarte.' : 'Lo usaremos para saludarte y en los recordatorios.'}{' '}
                 Puedes cambiarlo en Ajustes.
               </Caption>
               <Button label="Continuar" variant="primary" onPress={() => afterName(name)} disabled={!name.trim()} />

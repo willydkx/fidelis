@@ -1,4 +1,3 @@
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
@@ -18,6 +17,7 @@ import {
 import { Body, Button, Caption, Card, Icon, Title } from '@/ui/components';
 import { WEEKDAY_ABBR } from '@/ui/labels';
 import { colors, radius, space } from '@/ui/theme';
+import { pickTime } from '@/ui/timePicker';
 import { NAME_PLACEHOLDER, USER_NAME_KEY } from '@/utils/personalization';
 
 const DAY_PRESETS: { label: string; days: number[] }[] = [
@@ -25,19 +25,6 @@ const DAY_PRESETS: { label: string; days: number[] }[] = [
   { label: 'Laborables', days: [0, 1, 2, 3, 4] },
   { label: 'Fin de semana', days: [5, 6] },
 ];
-
-function pickTime(initial: string, onPicked: (time: string) => void) {
-  const [hour, minute] = initial.split(':').map(Number);
-  DateTimePickerAndroid.open({
-    value: new Date(2000, 0, 1, hour, minute),
-    mode: 'time',
-    is24Hour: true,
-    onChange: (event, selected) => {
-      if (event.type !== 'set' || !selected) return;
-      onPicked(`${String(selected.getHours()).padStart(2, '0')}:${String(selected.getMinutes()).padStart(2, '0')}`);
-    },
-  });
-}
 
 export function ReminderSettings() {
   const { settings, notifyChanged } = useData();
@@ -223,7 +210,7 @@ const styles = StyleSheet.create({
   },
   addChip: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.accent, gap: space.xs },
   timeText: { color: colors.primaryInk, fontSize: 18, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  days: { flexDirection: 'row', justifyContent: 'space-between' },
+  days: { flexDirection: 'row', justifyContent: 'space-between', maxWidth: 420 },
   day: {
     width: 38,
     height: 38,

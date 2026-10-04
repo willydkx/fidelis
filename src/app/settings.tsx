@@ -2,14 +2,18 @@ import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 
+import { remindersSupported } from '@/notifications/reminders';
+import { isDesktop } from '@/platform/desktop';
 import { Caption, Card } from '@/ui/components';
+import { DesktopSettings } from '@/ui/DesktopSettings';
 import { NameSettings } from '@/ui/NameSettings';
 import { ReminderSettings } from '@/ui/ReminderSettings';
 import { Screen } from '@/ui/Screen';
 import { colors, space } from '@/ui/theme';
 
-// On the web version, tapping the version this many times reveals a small dedication.
+// In the browser version, tapping the version this many times reveals a small dedication.
 const SECRET_TAPS = 5;
+const isBrowser = Platform.OS === 'web' && !isDesktop;
 
 export default function SettingsScreen() {
   const [taps, setTaps] = useState(0);
@@ -18,17 +22,18 @@ export default function SettingsScreen() {
   return (
     <Screen title="Ajustes">
       <NameSettings />
-      {Platform.OS === 'web' ? (
+      {remindersSupported || !isBrowser ? (
+        <ReminderSettings />
+      ) : (
         <Caption style={{ textAlign: 'center' }}>
           Versión web: tus datos se guardan solo en este navegador. Si borras los datos del sitio, se pierden.
         </Caption>
-      ) : (
-        <ReminderSettings />
       )}
-      <Pressable onPress={() => setTaps((n) => n + 1)} disabled={Platform.OS !== 'web'} hitSlop={8}>
+      {isDesktop && <DesktopSettings />}
+      <Pressable onPress={() => setTaps((n) => n + 1)} disabled={!isBrowser} hitSlop={8}>
         <Caption style={{ textAlign: 'center' }}>Fidelis {Constants.expoConfig?.version ?? ''}</Caption>
       </Pressable>
-      {Platform.OS === 'web' && revealed && (
+      {isBrowser && revealed && (
         <Card style={styles.secret}>
           <Text style={styles.secretText}>Esta versión es para la mejor novia del mundo.</Text>
           <Text style={styles.secretText}>Te quiero mucho, Jimena.</Text>
